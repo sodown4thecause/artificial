@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
-const TrialSignup = ({ onTrialStarted }) => {
+const TrialSignup = ({ onTrialStarted, defaultCoupon = '' }) => {
   const [selectedPlan, setSelectedPlan] = useState('starter');
-  const [couponCode, setCouponCode] = useState('');
+  const [couponCode, setCouponCode] = useState(defaultCoupon);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -114,7 +114,13 @@ const TrialSignup = ({ onTrialStarted }) => {
           onChange={(e) => setCouponCode(e.target.value)}
           disabled={loading}
         />
-        <small>Try: FREETRIAL14 for extended trial benefits</small>
+        <small>
+          {defaultCoupon ? (
+            <>✅ <strong>{defaultCoupon}</strong> automatically applied for new users!</>
+          ) : (
+            <>Try: FREETRIAL14 for extended trial benefits</>
+          )}
+        </small>
       </div>
 
       {error && (

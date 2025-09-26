@@ -12,9 +12,43 @@ function AuthPage() {
 
   useEffect(() => {
     if (!loading && session) {
-      navigate('/onboarding', { replace: true });
+      // Check if user has completed onboarding
+      checkOnboardingStatus();
     }
   }, [session, loading, navigate]);
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-trial-status`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.has_completed_onboarding) {
+          // User has onboarded, check trial status
+          if (data.trial_status === 'eligible') {
+            navigate('/trial-signup', { replace: true });
+          } else {
+            navigate('/dashboard', { replace: true });
+          }
+        } else {
+          // User needs to complete onboarding
+          navigate('/onboarding', { replace: true });
+        }
+      } else {
+        // Fallback to onboarding if status check fails
+        navigate('/onboarding', { replace: true });
+      }
+    } catch (error) {
+      console.error('Failed to check onboarding status:', error);
+      navigate('/onboarding', { replace: true });
+    }
+  };
 
   return (
     <div className="auth-page">

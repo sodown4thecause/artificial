@@ -106,10 +106,6 @@ export function OnboardingForm({ defaultValues, isSubmitting, onSubmit, onComple
       <button className="primary-button" type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Submitting…' : 'Generate my intelligence report'}
       </button>
-      
-      <div className="trial-preview">
-        <p>🎉 After onboarding, start your <strong>14-day free trial</strong> for unlimited reports!</p>
-      </div>
     </form>
   );
 }

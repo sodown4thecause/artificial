@@ -32,7 +32,7 @@ function OnboardingPage() {
           throw new Error('Unable to obtain session token. Please sign in again.');
         }
 
-        const response = await fetch('/functions/v1/run-intelligence-workflow', {
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/run-intelligence-workflow`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -57,12 +57,22 @@ function OnboardingPage() {
           throw new Error(errorDetail?.message || 'Workflow failed to start');
         }
 
+        const result = await response.json();
+        
         setStatus({
           state: 'success',
           message: 'We started building your intelligence report. You will receive an email when it is ready.'
         });
 
-        setTimeout(() => navigate('/dashboard'), 1500);
+        // After successful onboarding, redirect to trial signup
+        setTimeout(() => {
+          navigate('/trial-signup', { 
+            state: { 
+              workflowId: result.workflowId, 
+              onboardingComplete: true 
+            }
+          });
+        }, 2000);
       } catch (error) {
         setStatus({
           state: 'error',
