@@ -1,7 +1,7 @@
 import type { WorkflowContext, SerpResult } from '../types.ts';
 import { fetchWithRetry } from '../utils.ts';
 
-const FIRECRAWL_BASE_URL = 'https://api.firecrawl.dev/v1/crawl';
+const FIRECRAWL_BASE_URL = 'https://api.firecrawl.dev/v2/extract';
 
 export async function fetchFirecrawlInsights(
   context: WorkflowContext,
@@ -31,7 +31,17 @@ export async function fetchFirecrawlInsights(
             'Content-Type': 'application/json',
             Authorization: `Bearer ${apiKey}`
           },
-          body: JSON.stringify({ url, depth: 1 })
+          body: JSON.stringify({
+            urls: [url],
+            enableWebSearch: false,
+            ignoreSitemap: false,
+            includeSubdomains: false,
+            showSources: false,
+            scrapeOptions: {
+              storeInCache: true
+            },
+            ignoreInvalidURLs: true
+          })
         })
       ).then((response) => response.json())
     )

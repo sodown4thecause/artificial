@@ -106,7 +106,11 @@ serve(async (request) => {
 
     const priceId = await resolvePriceId(stripe);
 
-    const session = await stripe.checkout.sessions.create({
+    const body = await request.json().catch(() => ({}));
+    const couponCode = body.couponCode || null;
+    const requestedTrialDays = body.trialDays || 14; // Default 14-day trial
+
+    const sessionConfig = {
       mode: 'subscription',
       customer: stripeCustomerId,
       line_items: [
@@ -121,16 +125,32 @@ serve(async (request) => {
       subscription_data: {
         metadata: {
           supabase_user_id: user.id,
-          plan_id: planId ?? undefined
+          plan_id: planId ?? undefined,
+          trial_started_at: new Date().toISOString()
         },
-        trial_settings: trialPeriodDays
-          ? {
-              end_behavior: { missing_payment_method: 'cancel' }
-            }
-          : undefined,
-        trial_period_days: trialPeriodDays
+        trial_settings: {
+          end_behavior: { missing_payment_method: 'cancel' }
+        },
+        trial_period_days: requestedTrialDays
       }
-    });
+    };
+
+    // Add coupon if provided
+    if (couponCode) {
+      sessionConfig.discounts = [{ coupon: couponCode }];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+
+    // Track trial in database
+    await supabaseClient.from('billing_customers').upsert({
+      user_id: user.id,
+      stripe_customer_id: stripeCustomerId,
+      trial_started_at: new Date().toISOString(),
+      trial_ends_at: new Date(Date.now() + (requestedTrialDays * 24 * 60 * 60 * 1000)).toISOString(),
+      plan_type: planId || 'pro',
+      coupon_used: couponCode
+    }, { onConflict: 'user_id' });
 
     return new Response(JSON.stringify({ id: session.id, url: session.url }), {
       status: 200,

@@ -7,6 +7,7 @@ export interface OnboardingFormProps {
   defaultValues?: Partial<OnboardingFormValues>;
   isSubmitting: boolean;
   onSubmit(values: OnboardingFormValues): Promise<void> | void;
+  onComplete?: (workflowId: string) => void;
 }
 
 const industries = [
@@ -20,7 +21,7 @@ const industries = [
   'Other'
 ];
 
-export function OnboardingForm({ defaultValues, isSubmitting, onSubmit }: OnboardingFormProps) {
+export function OnboardingForm({ defaultValues, isSubmitting, onSubmit, onComplete }: OnboardingFormProps) {
   const {
     register,
     handleSubmit,
@@ -105,6 +106,10 @@ export function OnboardingForm({ defaultValues, isSubmitting, onSubmit }: Onboar
       <button className="primary-button" type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Submitting…' : 'Generate my intelligence report'}
       </button>
+      
+      <div className="trial-preview">
+        <p>🎉 After onboarding, start your <strong>14-day free trial</strong> for unlimited reports!</p>
+      </div>
     </form>
   );
 }

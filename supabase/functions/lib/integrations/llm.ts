@@ -139,16 +139,11 @@ async function callPerplexityInsights(payload: IntelligenceReportPayload) {
       Authorization: `Bearer ${perplexityKey}`
     },
     body: JSON.stringify({
-      model: 'llama-3.1-sonar-large-128k-online',
+      model: 'sonar',
       messages: [
         {
-          role: 'system',
-          content:
-            'You have live web access. Research recent developments, competitive moves, and news relevant to the provided marketing intelligence payload. Respond with concise JSON containing keys `breaking_insights` (array of strings) and `sources` (array of URLs).'
-        },
-        {
           role: 'user',
-          content: JSON.stringify(payload)
+          content: `Research recent developments, competitive moves, and news relevant to this marketing intelligence data. Focus on: ${payload.summary.executive_summary || 'competitive intelligence'}. Respond with concise JSON containing keys "breaking_insights" (array of strings) and "sources" (array of URLs).`
         }
       ]
     })
