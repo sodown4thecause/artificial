@@ -152,3 +152,4 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 
 Your BI Dashboard is production-ready! 🎯
 # Deployment fix
+# Force Pages update
