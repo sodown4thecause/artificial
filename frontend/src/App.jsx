@@ -2,10 +2,12 @@ import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import './App.css';
-import { AuthProvider } from './providers/AuthProvider.jsx';
+// Clerk Auth (replace Supabase Auth)
+import { AuthProvider } from './providers/ClerkAuthProvider.jsx';
 
 const LandingPage = lazy(() => import('./pages/LandingPage.tsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
+const ClerkAuthPage = lazy(() => import('./pages/ClerkAuthPage.jsx'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage.tsx'));
 const TrialSignupPage = lazy(() => import('./pages/TrialSignupPage.tsx'));
 const ReportPage = lazy(() => import('./pages/dashboard/Report.tsx'));
@@ -19,6 +21,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
+        <Route path="/clerk-auth" element={<ClerkAuthPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/trial-signup" element={<TrialSignupPage />} />
           <Route path="/dashboard" element={<ReportPage />} />

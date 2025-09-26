@@ -201,8 +201,8 @@ function LandingPage() {
                   <Link className="cta primary" to="/auth">
                     Start Free Trial
                   </Link>
-                  <a className="cta secondary" href="#demo">
-                    Book a Demo
+                  <a className="cta secondary" href="/clerk-auth">
+                    Start Free Trial
                   </a>
                   <a className="cta tertiary" href="#pricing">
                     View Pricing
@@ -342,8 +342,8 @@ function LandingPage() {
               </ul>
             </div>
             <div className="instant-cta">
-              <a className="cta secondary" href="#demo">
-                Book a Demo
+              <a className="cta secondary" href="/clerk-auth">
+                Start Free Trial
               </a>
               <a className="cta tertiary" href="#pricing">
                 View Pricing
