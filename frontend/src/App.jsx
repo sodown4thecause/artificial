@@ -4,7 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import './App.css';
 import { AuthProvider } from './providers/AuthProvider.jsx';
 
-const LandingPage = lazy(() => import('./pages/LandingPage.jsx'));
+const LandingPage = lazy(() => import('./pages/LandingPage.tsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage.tsx'));
 const ReportPage = lazy(() => import('./pages/dashboard/Report.tsx'));
