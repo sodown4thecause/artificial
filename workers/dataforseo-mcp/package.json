@@ -1,0 +1,14 @@
+{
+  "name": "dataforseo-mcp-worker",
+  "version": "1.0.0",
+  "description": "DataForSEO MCP Server deployed as Cloudflare Worker",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "echo 'No build step required for Worker'",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail"
+  },
+  "keywords": ["dataforseo", "mcp", "cloudflare", "worker", "seo", "api"],
+  "license": "MIT"
+}
