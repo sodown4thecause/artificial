@@ -76,8 +76,8 @@ const TrialSignup = ({ onTrialStarted }) => {
   return (
     <div className="trial-signup">
       <div className="trial-header">
-        <h2>Start Your 14-Day Free Trial</h2>
-        <p>Experience the full power of competitive intelligence with no commitment</p>
+        <h2>Start Your 14-Day Free Trial - Artificial Intelligentsia Business Intelligence</h2>
+        <p>Experience the full power of AI-powered competitive intelligence by Artificial Intelligentsia with no commitment</p>
       </div>
 
       <div className="plans-container">

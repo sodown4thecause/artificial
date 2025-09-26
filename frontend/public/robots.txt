@@ -1,3 +1,15 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap
+Sitemap: https://artificialintelligentsia.com/sitemap.xml
+
+# Brand disambiguation
+# This is the official Artificial Intelligentsia Business Intelligence Platform
+# Not affiliated with Northwestern's art project or other entities
+
+# SEO optimization for branded searches
+Allow: /business-intelligence
+Allow: /ai-powered-analysis
+Allow: /competitive-intelligence
+Allow: /artificial-intelligentsia-platform
