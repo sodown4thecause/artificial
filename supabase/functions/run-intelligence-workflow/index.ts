@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.5';
 
 import { triggerWorkflow } from '../lib/workflow-orchestrator.ts';
 import type { OnboardingPayload } from '../lib/types.ts';
+import { getClerkUser } from '../lib/integrations/clerk-auth.ts';
 
 serve(async (request) => {
   if (request.method !== 'POST') {
@@ -18,19 +19,30 @@ serve(async (request) => {
       return new Response('Service misconfigured', { status: 500 });
     }
 
-    const supabaseClient = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false }
-    });
+    // Try Clerk authentication first, fallback to Supabase
+    let user, supabaseClient;
+    
+    const clerkResult = await getClerkUser(request);
+    if (clerkResult.error) {
+      // Fallback to Supabase auth
+      supabaseClient = createClient(supabaseUrl, serviceRoleKey, {
+        auth: { persistSession: false }
+      });
 
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response('Unauthorized', { status: 401 });
-    }
+      const authHeader = request.headers.get('Authorization');
+      if (!authHeader) {
+        return new Response('Unauthorized', { status: 401 });
+      }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: user, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError || !user?.user) {
-      return new Response('Invalid token', { status: 401 });
+      const token = authHeader.replace('Bearer ', '');
+      const { data: supabaseUser, error: userError } = await supabaseClient.auth.getUser(token);
+      if (userError || !supabaseUser?.user) {
+        return new Response('Invalid token', { status: 401 });
+      }
+      user = supabaseUser;
+    } else {
+      user = clerkResult.data;
+      supabaseClient = clerkResult.supabaseClient;
     }
 
     const forwardedFor = request.headers.get('x-forwarded-for') ?? '';

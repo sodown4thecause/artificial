@@ -62,6 +62,11 @@ const CRITICAL_VARS = [
   'VOILANORBERT_API_KEY'
 ];
 
+const AUTH_VARS = [
+  'VITE_CLERK_PUBLISHABLE_KEY',
+  'CLERK_SECRET_KEY'
+];
+
 const OPTIONAL_VARS = [
   'WORKFLOW_REPORT_LLM_MODEL',
   'SCHEDULER_SECRET'
@@ -92,6 +97,23 @@ function checkEnvironmentVariables() {
   CRITICAL_VARS.forEach(varName => {
     const value = process.env[varName];
     const description = REQUIRED_ENV_VARS[varName];
+    
+    if (value) {
+      console.log(`   ✅ ${varName}: Set (${description})`);
+      results.critical.present++;
+      results.critical.vars.push({ name: varName, status: 'present', description });
+    } else {
+      console.log(`   ❌ ${varName}: Missing (${description})`);
+      results.critical.missing++;
+      results.critical.vars.push({ name: varName, status: 'missing', description });
+    }
+  });
+
+  // Check authentication variables
+  console.log('\n🔐 Authentication Variables (Clerk):');
+  AUTH_VARS.forEach(varName => {
+    const value = process.env[varName];
+    const description = REQUIRED_ENV_VARS[varName] || 'Clerk authentication configuration';
     
     if (value) {
       console.log(`   ✅ ${varName}: Set (${description})`);
