@@ -3,6 +3,8 @@ export interface OnboardingFormValues {
   websiteUrl: string;
   industry: string;
   location: string;
+  targetKeywords?: string[];
+  competitorDomains?: string[];
 }
 
 export interface WorkflowStatus {

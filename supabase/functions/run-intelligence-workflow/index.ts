@@ -73,19 +73,51 @@ serve(async (request) => {
       );
     }
 
-    const result = await triggerWorkflow(supabaseClient, user.user, payload);
+    const result = await triggerWorkflow(supabaseClient, user.user, payload, ipAddress);
 
     await supabaseClient
       .from('signup_fingerprints')
       .upsert({ user_id: user.user.id, ip_address: ipAddress }, { onConflict: 'user_id' });
 
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify({
+      ...result,
+      rate_limit_info: {
+        message: 'Report generation started. You can generate up to 10 reports per day during our launch phase.',
+        daily_limit: 10
+      }
+    }), {
       status: 202,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('Workflow trigger failed', error);
-    return new Response('Internal Server Error', { status: 500 });
+    
+    // Handle rate limiting errors specifically
+    if (error.message && error.message.includes('Daily report generation limit')) {
+      return new Response(JSON.stringify({
+        error: 'RATE_LIMIT_EXCEEDED',
+        message: error.message,
+        details: {
+          daily_limit: 10,
+          reset_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          suggestion: 'You can upgrade to a premium plan for higher limits, or wait until tomorrow for your limits to reset.'
+        }
+      }), {
+        status: 429, // Too Many Requests
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': '86400' // 24 hours in seconds
+        }
+      });
+    }
+    
+    return new Response(JSON.stringify({
+      error: 'WORKFLOW_TRIGGER_FAILED',
+      message: 'Unable to start report generation. Please try again.'
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 });
 

@@ -1,0 +1,67 @@
+/* Authentication Setup Styles */
+.auth-setup-required {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.auth-setup-required h2 {
+  color: #2361ff;
+  margin: 0 0 1rem 0;
+}
+
+.auth-setup-required p {
+  margin-bottom: 1.5rem;
+  color: #343a40;
+  line-height: 1.5;
+}
+
+.auth-setup-required ol {
+  margin: 1.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.auth-setup-required ol li {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.auth-setup-required code {
+  background: #f8f9fa;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  color: #e83e8c;
+}
+
+.auth-setup-required a {
+  color: #2361ff;
+  text-decoration: none;
+}
+
+.auth-setup-required a:hover {
+  text-decoration: underline;
+}
+
+.setup-note {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #2361ff;
+}
+
+.setup-note p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.setup-note p:last-child {
+  margin-bottom: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e9ecef;
+}

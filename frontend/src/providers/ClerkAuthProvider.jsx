@@ -1,5 +1,5 @@
 import { ClerkProvider, useAuth as useClerkAuth } from '@clerk/clerk-react';
-import { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -15,27 +15,30 @@ const AuthContext = createContext({
 function AuthAdapter({ children }) {
   const { isLoaded, isSignedIn, user, getToken } = useClerkAuth();
   
-  const value = useMemo(async () => {
+  const [accessToken, setAccessToken] = React.useState(null);
+  
+  React.useEffect(() => {
+    if (isSignedIn && isLoaded) {
+      getToken().then(setAccessToken).catch(error => {
+        console.error('Failed to get Clerk token:', error);
+        setAccessToken(null);
+      });
+    } else {
+      setAccessToken(null);
+    }
+  }, [isLoaded, isSignedIn, getToken]);
+  
+  const value = useMemo(() => {
     const loading = !isLoaded;
     const session = isSignedIn ? { user } : null;
     
-    let accessToken = null;
-    if (isSignedIn && isLoaded) {
-      try {
-        // Get Clerk JWT token
-        accessToken = await getToken();
-      } catch (error) {
-        console.error('Failed to get Clerk token:', error);
-      }
-    }
-
     return {
       session,
       loading,
       accessToken,
       user: isSignedIn ? user : null
     };
-  }, [isLoaded, isSignedIn, user, getToken]);
+  }, [isLoaded, isSignedIn, user, accessToken]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

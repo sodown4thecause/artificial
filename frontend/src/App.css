@@ -1,9 +1,15 @@
+/* Override Tailwind's default background for app-shell */
 .app-shell {
   color: #0b1520;
   min-height: 100vh;
   background: #f3f6fb;
   display: flex;
   flex-direction: column;
+}
+
+/* Ensure existing styles work with Tailwind */
+.app-shell * {
+  box-sizing: border-box;
 }
 
 .hero-section {

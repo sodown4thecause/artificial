@@ -32,6 +32,7 @@ import type {
   BillingStatus
 } from '../../types/workflow';
 import { useAuth } from '../../providers/AuthProvider.jsx';
+import './dashboard.css';
 
 ChartJS.register(
   CategoryScale,
@@ -280,22 +281,22 @@ function ReportPage() {
         </section>
 
         <section className="dashboard-grid">
-          <div className="panel">
+          <div className="panel" data-chart="line">
             <h3>SERP Share of Voice</h3>
             <Line data={buildSerpTimelineDataset(data.serpTimeline)} />
           </div>
 
-          <div className="panel">
+          <div className="panel" data-chart="scatter">
             <h3>Keyword Opportunities</h3>
             <Scatter data={buildKeywordScatterDataset(data.keywordOpportunities)} />
           </div>
 
-          <div className="panel">
+          <div className="panel" data-chart="radar">
             <h3>Brand & Sentiment Pulse</h3>
             <Radar data={buildSentimentRadarDataset(data.sentiment)} />
           </div>
 
-          <div className="panel">
+          <div className="panel" data-chart="bar">
             <h3>Core Web Vitals</h3>
             <Bar data={buildCoreWebVitalsDataset(data.coreWebVitals)} />
           </div>

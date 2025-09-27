@@ -23,8 +23,8 @@ export async function testFirecrawlConnection(): Promise<TestResult[]> {
   try {
     const start = Date.now();
     
-    // Test with v2 status endpoint
-    const response = await fetch('https://api.firecrawl.dev/v2/status', {
+    // Test with v1 status endpoint (v2 is not available yet)
+    const response = await fetch('https://api.firecrawl.dev/v1/status', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiKey}`,

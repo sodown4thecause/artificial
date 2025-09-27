@@ -3,6 +3,17 @@ export interface OnboardingPayload {
   websiteUrl: string;
   industry: string;
   location: string;
+  targetKeywords?: string[];
+  competitorDomains?: string[];
+}
+
+export interface AgenticWorkflowPayload {
+  fullName: string;
+  websiteUrl: string;
+  industry: string;
+  location: string;
+  targetKeywords: string[];
+  competitorDomains: string[];
 }
 
 export interface WorkflowTriggerResult {
@@ -29,6 +40,10 @@ export interface SerpResult {
   keyword: string;
   position: number;
   url: string;
+  domain?: string;
+  title?: string;
+  description?: string;
+  is_target?: boolean;
   delta?: number;
 }
 

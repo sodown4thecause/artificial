@@ -3,7 +3,16 @@ import type { SupabaseClient, User } from 'https://esm.sh/@supabase/supabase-js@
 import { fetchBacklinkMetrics } from './integrations/backlinks.ts';
 import { fetchBusinessData } from './integrations/business-data.ts';
 import { fetchContentAnalysis } from './integrations/content-analysis.ts';
-import { fetchKeywordMetrics, fetchSerpResults, buildSerpShareTimeline } from './integrations/dataforseo.ts';
+import { 
+  fetchKeywordMetrics, 
+  fetchSerpResults, 
+  fetchEnhancedSerpResults,
+  buildSerpShareTimeline, 
+  identifyCompetitors,
+  analyzeCompetitorKeywords,
+  fetchCompetitorBacklinks,
+  buildCompetitorInsights
+} from './integrations/dataforseo.ts';
 import { fetchDomainAnalytics } from './integrations/domain-analytics.ts';
 import { fetchFirecrawlInsights } from './integrations/firecrawl.ts';
 import { fetchOnPageAudit } from './integrations/onpage.ts';
@@ -21,8 +30,30 @@ import type {
 export async function triggerWorkflow(
   supabase: SupabaseClient,
   user: User,
-  payload: OnboardingPayload
+  payload: OnboardingPayload,
+  ipAddress?: string
 ): Promise<WorkflowTriggerResult> {
+  // Check daily rate limit before proceeding
+  console.log('🚫 Checking daily rate limit...');
+  const { data: rateLimitResult, error: rateLimitError } = await supabase
+    .rpc('check_and_increment_daily_limit', {
+      p_user_id: user.id,
+      p_ip_address: ipAddress || 'unknown',
+      p_daily_limit: 10
+    });
+
+  if (rateLimitError) {
+    console.error('Rate limit check failed:', rateLimitError);
+    throw new Error('Unable to verify daily usage limits. Please try again.');
+  }
+
+  if (!rateLimitResult.allowed) {
+    console.log(`⚠️ Rate limit exceeded for user ${user.id}: ${rateLimitResult.current_count}/${rateLimitResult.daily_limit}`);
+    throw new Error(rateLimitResult.message || 'Daily report generation limit reached. Please try again tomorrow.');
+  }
+
+  console.log(`✅ Rate limit check passed: ${rateLimitResult.current_count}/${rateLimitResult.daily_limit} reports used today`);
+
   const { data: onboardingRecord, error: onboardingError } = await supabase
     .from('onboarding_profiles')
     .upsert(
@@ -79,11 +110,27 @@ async function runWorkflow(supabase: SupabaseClient, context: WorkflowContext) {
     .eq('id', context.workflowId);
 
   try {
-    const serpResults = await fetchSerpResults(context);
+    // Step 1: Identify competitors through SERP analysis
+    console.log('🔍 Identifying competitors...');
+    const competitors = await identifyCompetitors(context);
+    console.log(`Found ${competitors.length} competitors: ${competitors.join(', ')}`);
+
+    // Step 2: Enhanced SERP analysis including competitors
+    console.log('📊 Analyzing SERP performance...');
+    const serpResults = await fetchEnhancedSerpResults(context, competitors);
     await persistSerpResults(supabase, context.workflowId, serpResults);
 
+    // Step 3: Competitor keyword analysis
+    console.log('🎯 Analyzing competitor keywords...');
+    const competitorKeywordAnalysis = await analyzeCompetitorKeywords(competitors, context);
+    
+    // Step 4: Basic keyword metrics (existing)
     const keywordMetrics = await fetchKeywordMetrics(context);
     await persistKeywordMetrics(supabase, context.workflowId, keywordMetrics);
+
+    // Step 5: Competitor backlink analysis
+    console.log('🔗 Analyzing competitor backlinks...');
+    const competitorBacklinks = await fetchCompetitorBacklinks(competitors);
 
     const contentSentiment = await fetchContentAnalysis(context, serpResults);
     await supabase.from('content_sentiment').insert(
@@ -129,6 +176,22 @@ async function runWorkflow(supabase: SupabaseClient, context: WorkflowContext) {
     const enrichedContacts = await enrichContacts(context, newsroomResults);
 
     const serpTimeline = buildSerpShareTimeline(serpResults);
+    
+    // Step 10: Build competitive intelligence insights
+    console.log('🏆 Building competitive insights...');
+    const competitiveInsights = buildCompetitorInsights(serpResults, competitors);
+    
+    // Store competitive analysis data
+    await supabase.from('business_profiles').insert({
+      workflow_id: context.workflowId,
+      domain: 'competitive_analysis',
+      firmographics: {
+        competitors,
+        competitor_keywords: competitorKeywordAnalysis,
+        competitor_backlinks: competitorBacklinks,
+        competitive_insights: competitiveInsights
+      }
+    });
 
     const insights = await generateInsights({
       context,
@@ -143,7 +206,12 @@ async function runWorkflow(supabase: SupabaseClient, context: WorkflowContext) {
       businessData,
       newsroomResults,
       enrichedContacts,
-      serpTimeline
+      serpTimeline,
+      // Enhanced competitive intelligence
+      competitors,
+      competitorKeywordAnalysis,
+      competitorBacklinks,
+      competitiveInsights
     });
 
     await supabase.from('ai_insights').insert({

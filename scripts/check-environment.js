@@ -28,7 +28,6 @@ const REQUIRED_ENV_VARS = {
   
   // Intelligence Workflow APIs (All Critical)
   'PAGESPEED_API_KEY': 'Google PageSpeed Insights API key for Core Web Vitals analysis',
-  'FIRECRAWL_API_KEY': 'Firecrawl API key for competitive content analysis',
   'PERPLEXITY_API_KEY': 'Perplexity API key for real-time market intelligence',
   'CUSTOM_SEARCH_KEY': 'Google Custom Search API key for news and content discovery',
   'CUSTOM_SEARCH_CSE_ID': 'Google Custom Search Engine ID for content analysis',
@@ -37,6 +36,7 @@ const REQUIRED_ENV_VARS = {
   // Workflow configuration
   'WORKFLOW_REPORT_LLM_MODEL': 'LLM model for report generation (optional)',
   'SCHEDULER_SECRET': 'Secret key for scheduled workflows',
+  'FIRECRAWL_API_KEY': 'Firecrawl API key (optional - using Jina AI Reader as free primary)',
   
   // Payment Processing (separate from workflow)
   'STRIPE_SECRET_KEY': 'Stripe secret key (for billing, not workflow)',
@@ -55,7 +55,6 @@ const CRITICAL_VARS = [
   'DATAFORSEO_PASSWORD',
   'ANTHROPIC_API_KEY',
   'PAGESPEED_API_KEY',
-  'FIRECRAWL_API_KEY',
   'PERPLEXITY_API_KEY',
   'CUSTOM_SEARCH_KEY',
   'CUSTOM_SEARCH_CSE_ID',
@@ -69,7 +68,8 @@ const AUTH_VARS = [
 
 const OPTIONAL_VARS = [
   'WORKFLOW_REPORT_LLM_MODEL',
-  'SCHEDULER_SECRET'
+  'SCHEDULER_SECRET',
+  'FIRECRAWL_API_KEY' // Now optional since we use Jina AI Reader (free) as primary
 ];
 
 const BILLING_VARS = [
