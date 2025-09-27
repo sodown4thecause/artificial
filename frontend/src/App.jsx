@@ -2,7 +2,7 @@ import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import './App.css';
-// Clerk Auth (replace Supabase Auth)
+// Clerk Auth (now properly configured)
 import { AuthProvider } from './providers/ClerkAuthProvider.jsx';
 
 const LandingPage = lazy(() => import('./pages/LandingPage.tsx'));
@@ -21,7 +21,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
-        <Route path="/clerk-auth" element={<ClerkAuthPage />} />
+          <Route path="/clerk-auth" element={<ClerkAuthPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/trial-signup" element={<TrialSignupPage />} />
           <Route path="/dashboard" element={<ReportPage />} />

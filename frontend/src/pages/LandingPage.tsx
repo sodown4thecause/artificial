@@ -198,7 +198,7 @@ function LandingPage() {
             <div className="hero-cta">
               {!accessToken && (
                 <>
-                  <Link className="cta primary" to="/clerk-auth">
+                  <Link className="cta primary" to="/auth">
                     Start Free Trial
                   </Link>
                   <a className="cta tertiary" href="#pricing">
@@ -239,7 +239,7 @@ function LandingPage() {
                 <li>Personalized growth roadmap for your brand</li>
               </ul>
               {!accessToken ? (
-                <Link className="cta primary" to="/clerk-auth">
+                <Link className="cta primary" to="/auth">
                   Continue to Secure Sign-In
                 </Link>
               ) : (
