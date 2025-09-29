@@ -21,7 +21,7 @@ function OnboardingPage() {
     async (values: OnboardingFormValues) => {
       if (!session) {
         setStatus({ state: 'error', message: 'Your session expired. Please log in again.' });
-        navigate('/auth', { replace: true });
+        navigate('/clerk-auth', { replace: true });
         return;
       }
 

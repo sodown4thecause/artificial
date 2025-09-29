@@ -267,23 +267,20 @@ function PricingPage({}: PricingPageProps) {
 
   return (
     <div className="app-shell">
-      <header className="hero-section">
-        <div className="hero-content">
-          <div className="hero-copy">
-            <div className="brand-row">
-              <img src={brandLogo} alt="Artificial Intelligentsia logo" className="brand-logo" />
-              <p className="eyebrow">Artificial Intelligentsia</p>
-            </div>
+      <main>
+        {/* Pricing Section Header */}
+        <section className="section">
+          <div className="section-header">
             <h1>Choose Your Intelligence Plan</h1>
-            <p className="hero-subtext">
+            <p>
               Start your free trial today and experience the power of AI-driven business intelligence.
               All plans include full access during your trial period.
             </p>
             <div className="hero-cta">
               {isSubscribed && (
-                <button 
-                  className="cta primary" 
-                  type="button" 
+                <button
+                  className="cta primary"
+                  type="button"
                   onClick={handleManageSubscription}
                   disabled={isLoading}
                 >
@@ -295,10 +292,8 @@ function PricingPage({}: PricingPageProps) {
               </Link>
             </div>
           </div>
-        </div>
-      </header>
+        </section>
 
-      <main>
         {/* Pricing Plans Section */}
         <section className="section" id="pricing">
           <div className="section-header">

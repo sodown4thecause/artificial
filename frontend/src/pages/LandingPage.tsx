@@ -184,13 +184,10 @@ function LandingPage() {
 
   return (
     <div className="app-shell">
-      <header className="hero-section">
+      {/* Hero Section - Now simplified without header */}
+      <section className="hero-section">
         <div className="hero-content">
           <div className="hero-copy">
-            <div className="brand-row">
-              <img src={brandLogo} alt="Artificial Intelligentsia logo" className="brand-logo" />
-              <p className="eyebrow">Artificial Intelligentsia</p>
-            </div>
             <h1>Transform Your Digital Strategy with AI-Powered Business Intelligence</h1>
             <p className="hero-subtext">
               Unlock real-time insights across search, competitors, and market trends with
@@ -252,7 +249,7 @@ function LandingPage() {
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
       <main>
         <section className="section" id="demo">

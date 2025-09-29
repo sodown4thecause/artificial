@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SignIn, SignUp, useAuth as useClerkAuth } from '@clerk/clerk-react';
-import './auth-setup.css';
+import { Card, CardContent, CardHeader } from '../components/ui/card';
 
 function ClerkAuthPage() {
   const navigate = useNavigate();
@@ -11,21 +11,24 @@ function ClerkAuthPage() {
   
   if (!clerkPubKey) {
     return (
-      <div className="auth-page">
-        <div className="auth-setup-required">
-          <h2>🔧 Authentication Setup Required</h2>
-          <p>Clerk authentication is not configured. Please follow these steps:</p>
-          <ol>
-            <li>Copy <code>frontend/.env.example</code> to <code>frontend/.env</code></li>
-            <li>Get your Clerk publishable key from <a href="https://dashboard.clerk.com" target="_blank">Clerk Dashboard</a></li>
-            <li>Add your key to <code>VITE_CLERK_PUBLISHABLE_KEY</code> in the .env file</li>
-            <li>Restart the development server</li>
-          </ol>
-          <div className="setup-note">
-            <p><strong>Note:</strong> This message appears because you're in development mode without proper Clerk configuration.</p>
-            <p><a href="/">← Back to home</a> | <a href="/auth">Try fallback auth</a></p>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md bg-slate-900/90 border-slate-800">
+          <CardHeader className="text-center">
+            <h2 className="text-2xl font-bold text-white">🔧 Authentication Setup Required</h2>
+            <p className="text-slate-300">Clerk authentication is not configured. Please follow these steps:</p>
+          </CardHeader>
+          <CardContent>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 mb-6">
+              <li>Copy <code className="bg-slate-800 px-1 py-0.5 rounded text-sm">frontend/.env.example</code> to <code className="bg-slate-800 px-1 py-0.5 rounded text-sm">frontend/.env</code></li>
+              <li>Get your Clerk publishable key from <a href="https://dashboard.clerk.com" target="_blank" className="text-blue-400 hover:text-blue-300 underline">Clerk Dashboard</a></li>
+              <li>Add your key to <code className="bg-slate-800 px-1 py-0.5 rounded text-sm">VITE_CLERK_PUBLISHABLE_KEY</code> in the .env file</li>
+              <li>Restart the development server</li>
+            </ol>
+            <div className="text-center">
+              <a href="/" className="text-blue-400 hover:text-blue-300 underline">← Back to home</a>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -76,43 +79,68 @@ function ClerkAuthPage() {
 
   if (!isLoaded) {
     return (
-      <div className="auth-page">
-        <div className="loading">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md bg-slate-900/90 border-slate-800">
+          <CardContent className="text-center py-8">
+            <div className="text-slate-300">Loading...</div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="auth-page">
-      <header>
-        <h1>Secure Sign-In</h1>
-        <p>
-          Create your account or log in to access AI-powered business intelligence dashboards.
-        </p>
-      </header>
-
-      <div className="auth-container">
-        <div className="auth-tabs">
-          <SignIn 
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center p-6">
+      <Card className="w-full max-w-md bg-slate-900/90 border-slate-800">
+        <CardHeader className="text-center">
+          <h1 className="text-2xl font-bold text-white">Secure Sign-In</h1>
+          <p className="text-slate-300">
+            Create your account or log in to access AI-powered business intelligence dashboards.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <SignIn
             appearance={{
               elements: {
                 formButtonPrimary: {
-                  backgroundColor: '#4ca5ff',
+                  backgroundColor: '#3b82f6',
                   '&:hover': {
-                    backgroundColor: '#2361ff'
+                    backgroundColor: '#2563eb'
                   }
+                },
+                card: {
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  boxShadow: 'none'
+                },
+                headerTitle: {
+                  color: '#f1f5f9'
+                },
+                headerSubtitle: {
+                  color: '#94a3b8'
+                },
+                formFieldLabel: {
+                  color: '#94a3b8'
+                },
+                formFieldInput: {
+                  backgroundColor: '#1e293b',
+                  borderColor: '#475569',
+                  color: '#f1f5f9'
+                },
+                dividerText: {
+                  color: '#64748b'
+                },
+                socialButtonsBlockButton: {
+                  backgroundColor: '#1e293b',
+                  borderColor: '#475569',
+                  color: '#f1f5f9'
                 }
               }
             }}
             redirectUrl="/onboarding"
           />
-        </div>
-      </div>
-
-      <div className="auth-footer">
-        <span>Need help? Contact support.</span>
-        <a href="/">Back to site</a>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

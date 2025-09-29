@@ -4,9 +4,9 @@ import { Route, Routes } from 'react-router-dom';
 import './App.css';
 // Clerk Auth (now properly configured)
 import { AuthProvider } from './providers/ClerkAuthProvider.jsx';
+import Header from './components/Header';
 
 const LandingPage = lazy(() => import('./pages/LandingPage.tsx'));
-const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const ClerkAuthPage = lazy(() => import('./pages/ClerkAuthPage.jsx'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage.tsx'));
 const TrialSignupPage = lazy(() => import('./pages/TrialSignupPage.tsx'));
@@ -18,10 +18,10 @@ const FAQPage = lazy(() => import('./pages/FAQPage.tsx'));
 function App() {
   return (
     <AuthProvider>
+      <Header />
       <Suspense fallback={<div className="app-shell loading-state">Loading...</div>}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/auth" element={<AuthPage />} />
           <Route path="/clerk-auth" element={<ClerkAuthPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/trial-signup" element={<TrialSignupPage />} />

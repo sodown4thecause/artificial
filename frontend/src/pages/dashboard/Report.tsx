@@ -32,6 +32,7 @@ import type {
   BillingStatus
 } from '../../types/workflow';
 import { useAuth } from '../../providers/AuthProvider.jsx';
+import KeywordSearch from '../../components/KeywordSearch';
 import './dashboard.css';
 
 ChartJS.register(
@@ -261,6 +262,11 @@ function ReportPage() {
   return (
     <div className="app-shell">
       <main className="dashboard-container">
+        {/* Keyword Search Section */}
+        <section className="mb-8">
+          <KeywordSearch />
+        </section>
+
         <section className="dashboard-summary">
           <h1>Growth Intelligence Report</h1>
           <p>Captured {new Date(data.summary.captured_at).toLocaleString()}</p>
