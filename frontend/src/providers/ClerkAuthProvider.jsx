@@ -60,7 +60,15 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <ClerkProvider publishableKey={clerkPubKey}>
+    <ClerkProvider 
+      publishableKey={clerkPubKey}
+      domain="accounts.artificialintelligentsia.co"
+      isSatellite={false}
+      signInUrl="/clerk-auth"
+      signUpUrl="/clerk-auth"
+      afterSignInUrl="/onboarding"
+      afterSignUpUrl="/onboarding"
+    >
       <AuthAdapter>{children}</AuthAdapter>
     </ClerkProvider>
   );

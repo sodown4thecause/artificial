@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SignIn, SignUp, useAuth as useClerkAuth } from '@clerk/clerk-react';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
 
 function ClerkAuthPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   // Check if Clerk is properly configured
   const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -89,56 +90,95 @@ function ClerkAuthPage() {
     );
   }
 
+  const [isSignUp, setIsSignUp] = useState(searchParams.get('tab') === 'signup');
+  
+  // Update URL when tab changes
+  const handleTabChange = (isSignUpTab) => {
+    setIsSignUp(isSignUpTab);
+    const newParams = new URLSearchParams(searchParams);
+    if (isSignUpTab) {
+      newParams.set('tab', 'signup');
+    } else {
+      newParams.set('tab', 'signin');
+    }
+    navigate({ search: newParams.toString() }, { replace: true });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center p-6">
-      <Card className="w-full max-w-md bg-slate-900/90 border-slate-800">
+      <Card className="w-full max-w-lg bg-slate-900/90 border-slate-800">
         <CardHeader className="text-center">
-          <h1 className="text-2xl font-bold text-white">Secure Sign-In</h1>
+          <h2 className="text-2xl font-bold text-white mb-2">🔐 Secure Authentication</h2>
           <p className="text-slate-300">
-            Create your account or log in to access AI-powered business intelligence dashboards.
+            You're being redirected to our secure authentication portal at
+          </p>
+          <p className="text-blue-400 font-mono text-sm mt-1">
+            accounts.artificialintelligentsia.co
           </p>
         </CardHeader>
         <CardContent>
-          <SignIn
-            appearance={{
-              elements: {
-                formButtonPrimary: {
-                  backgroundColor: '#3b82f6',
-                  '&:hover': {
-                    backgroundColor: '#2563eb'
-                  }
-                },
-                card: {
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  boxShadow: 'none'
-                },
-                headerTitle: {
-                  color: '#f1f5f9'
-                },
-                headerSubtitle: {
-                  color: '#94a3b8'
-                },
-                formFieldLabel: {
-                  color: '#94a3b8'
-                },
-                formFieldInput: {
-                  backgroundColor: '#1e293b',
-                  borderColor: '#475569',
-                  color: '#f1f5f9'
-                },
-                dividerText: {
-                  color: '#64748b'
-                },
-                socialButtonsBlockButton: {
-                  backgroundColor: '#1e293b',
-                  borderColor: '#475569',
-                  color: '#f1f5f9'
-                }
-              }
-            }}
-            redirectUrl="/onboarding"
-          />
+          <div className="space-y-4">
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => handleTabChange(false)}
+                className={`flex-1 py-3 px-6 rounded-lg font-medium transition-colors ${
+                  !isSignUp 
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                    : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => handleTabChange(true)}
+                className={`flex-1 py-3 px-6 rounded-lg font-medium transition-colors ${
+                  isSignUp 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
+            
+            {/* Show the appropriate Clerk component */}
+            <div className="mt-6">
+              {!isSignUp ? (
+                <SignIn 
+                  path="/clerk-auth"
+                  routing="path"
+                  signUpUrl="/clerk-auth?tab=signup"
+                  afterSignInUrl="/onboarding"
+                />
+              ) : (
+                <SignUp 
+                  path="/clerk-auth"
+                  routing="path"
+                  signInUrl="/clerk-auth?tab=signin"
+                  afterSignUpUrl="/onboarding"
+                />
+              )}
+            </div>
+            
+            {/* Troubleshooting section */}
+            <div className="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+              <h3 className="text-sm font-semibold text-slate-200 mb-2">📧 Email Issues?</h3>
+              <div className="text-xs text-slate-400 space-y-1">
+                <p>• Check your spam/junk folder</p>
+                <p>• Try Gmail, Outlook, or Yahoo email addresses</p>
+                <p>• Use social sign-in (Google, GitHub, etc.) as alternative</p>
+                <p>• Emails usually arrive within 1-2 minutes</p>
+              </div>
+              
+              <div className="mt-3 p-2 bg-blue-900/30 rounded border border-blue-800">
+                <p className="text-xs text-blue-300">
+                  <strong>Note:</strong> Authentication is handled on our secure domain 
+                  <code className="bg-blue-800/50 px-1 rounded">accounts.artificialintelligentsia.co</code> 
+                  for better email delivery and security.
+                </p>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
