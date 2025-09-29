@@ -45,10 +45,10 @@ serve(async (request) => {
 
     const stripe = ensureStripeClient();
 
-    const body = await request.json().catch(() => ({}));
-    const mode = body.mode === 'portal' ? 'portal' : 'checkout';
-    const planId = body.planId ?? null;
-    const trialPeriodDays = body.trialPeriodDays ?? undefined;
+    const requestBody = await request.json().catch(() => ({}));
+    const mode = requestBody.mode === 'portal' ? 'portal' : 'checkout';
+    const planId = requestBody.planId ?? null;
+    const trialPeriodDays = requestBody.trialPeriodDays ?? undefined;
 
     const { data: existingCustomer, error: customerError } = await supabaseClient
       .from('billing_customers')
@@ -106,9 +106,8 @@ serve(async (request) => {
 
     const priceId = await resolvePriceId(stripe);
 
-    const body = await request.json().catch(() => ({}));
-    const couponCode = body.couponCode || null;
-    const requestedTrialDays = body.trialDays || 14; // Default 14-day trial
+    const couponCode = requestBody.couponCode || null;
+    const requestedTrialDays = requestBody.trialDays || 14; // Default 14-day trial
 
     const sessionConfig = {
       mode: 'subscription',

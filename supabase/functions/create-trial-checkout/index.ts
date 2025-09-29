@@ -42,13 +42,7 @@ serve(async (request) => {
         price_id: 'price_1SBThLDgH8UdYyxEKwxfjvvF',
         name: 'BI Dashboard Starter',
         amount: 4900, // $49/month
-        description: '1 Website/Industry/Location - 1 full AI-powered report per fortnight'
-      },
-      growth: {
-        price_id: 'price_1SBThODgH8UdYyxEfWTuLIlI',
-        name: 'BI Dashboard Growth',
-        amount: 9900, // $99/month  
-        description: 'Up to 3 Websites/Industry/Locations - 3 reports per fortnight'
+        description: 'Perfect for small businesses and startups getting started with AI-powered insights'
       }
     };
 

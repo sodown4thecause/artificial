@@ -12,7 +12,7 @@ const plans = [
     description: 'Perfect for small businesses and startups getting started with AI-powered insights',
     price: 49,
     billing: 'month',
-    popular: false,
+    popular: true,
     trialDays: 14,
     features: [
       'Track up to 500 keywords',
@@ -29,61 +29,6 @@ const plans = [
       'Basic sentiment analysis',
       'Standard data refresh (daily)'
     ]
-  },
-  {
-    id: 'professional',
-    name: 'Professional',
-    description: 'Advanced features for growing businesses and marketing agencies',
-    price: 149,
-    billing: 'month',
-    popular: true,
-    trialDays: 14,
-    features: [
-      'Track up to 2,500 keywords',
-      'Monitor 25 competitors',
-      'Advanced SERP tracking with features',
-      'Weekly intelligence reports',
-      'Priority support',
-      'API access (10,000 requests/month)',
-      'Advanced technical SEO monitoring',
-      'Comprehensive backlink intelligence',
-      'Content gap analysis',
-      'Brand sentiment tracking',
-      'Custom report scheduling',
-      'White-label reporting'
-    ],
-    limitations: [
-      'Up to 5 domains',
-      'Real-time data refresh'
-    ]
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    description: 'Unlimited access with custom integrations for large organizations',
-    price: 449,
-    billing: 'month',
-    popular: false,
-    trialDays: 30,
-    features: [
-      'Unlimited keywords tracking',
-      'Unlimited competitor monitoring',
-      'Real-time SERP tracking',
-      'Daily intelligence reports',
-      'Dedicated account manager',
-      'Unlimited API access',
-      'Advanced AI-powered insights',
-      'Custom integrations',
-      'Multi-domain management',
-      'Advanced sentiment analysis',
-      'Predictive analytics',
-      'Custom report branding',
-      'SSO integration',
-      'Advanced user management',
-      'Custom data retention',
-      'Priority infrastructure'
-    ],
-    limitations: []
   }
 ];
 
@@ -91,41 +36,41 @@ const additionalFeatures = [
   {
     category: 'Search Intelligence',
     features: [
-      { name: 'Keyword Research & Tracking', starter: '500 keywords', professional: '2,500 keywords', enterprise: 'Unlimited' },
-      { name: 'SERP Feature Monitoring', starter: 'Basic', professional: 'Advanced', enterprise: 'Full Featured' },
-      { name: 'Competitor Analysis', starter: '5 competitors', professional: '25 competitors', enterprise: 'Unlimited' },
-      { name: 'Search Volume Data', starter: '✓', professional: '✓', enterprise: '✓' },
-      { name: 'CPC & Competition Metrics', starter: '✓', professional: '✓', enterprise: '✓' }
+      { name: 'Keyword Research & Tracking', value: '500 keywords' },
+      { name: 'SERP Feature Monitoring', value: 'Basic' },
+      { name: 'Competitor Analysis', value: '5 competitors' },
+      { name: 'Search Volume Data', value: '✓' },
+      { name: 'CPC & Competition Metrics', value: '✓' }
     ]
   },
   {
     category: 'Technical SEO',
     features: [
-      { name: 'Site Crawling', starter: 'Basic', professional: 'Advanced', enterprise: 'Enterprise' },
-      { name: 'Core Web Vitals', starter: '✓', professional: '✓', enterprise: '✓' },
-      { name: 'Page Speed Analysis', starter: 'Basic', professional: 'Advanced', enterprise: 'Real-time' },
-      { name: 'Technical Issue Detection', starter: 'Basic', professional: 'Advanced', enterprise: 'AI-Powered' },
-      { name: 'Mobile Optimization Tracking', starter: '✓', professional: '✓', enterprise: '✓' }
+      { name: 'Site Crawling', value: 'Basic' },
+      { name: 'Core Web Vitals', value: '✓' },
+      { name: 'Page Speed Analysis', value: 'Basic' },
+      { name: 'Technical Issue Detection', value: 'Basic' },
+      { name: 'Mobile Optimization Tracking', value: '✓' }
     ]
   },
   {
     category: 'Content Intelligence',
     features: [
-      { name: 'Content Gap Analysis', starter: '—', professional: '✓', enterprise: '✓' },
-      { name: 'Brand Sentiment Tracking', starter: 'Basic', professional: 'Advanced', enterprise: 'AI-Enhanced' },
-      { name: 'Content Performance Metrics', starter: '✓', professional: '✓', enterprise: '✓' },
-      { name: 'AI Content Recommendations', starter: '—', professional: '✓', enterprise: '✓' },
-      { name: 'Topic Authority Tracking', starter: '—', professional: '✓', enterprise: '✓' }
+      { name: 'Content Gap Analysis', value: 'Basic' },
+      { name: 'Brand Sentiment Tracking', value: 'Basic' },
+      { name: 'Content Performance Metrics', value: '✓' },
+      { name: 'AI Content Recommendations', value: 'Basic' },
+      { name: 'Topic Authority Tracking', value: 'Basic' }
     ]
   },
   {
     category: 'Reporting & Analytics',
     features: [
-      { name: 'Automated Reports', starter: 'Monthly', professional: 'Weekly', enterprise: 'Daily' },
-      { name: 'Custom Dashboards', starter: 'Basic', professional: 'Advanced', enterprise: 'Unlimited' },
-      { name: 'White-label Reports', starter: '—', professional: '✓', enterprise: '✓' },
-      { name: 'API Access', starter: '1K/month', professional: '10K/month', enterprise: 'Unlimited' },
-      { name: 'Data Export', starter: 'CSV', professional: 'CSV, JSON', enterprise: 'All formats' }
+      { name: 'Automated Reports', value: 'Monthly' },
+      { name: 'Custom Dashboards', value: 'Basic' },
+      { name: 'API Access', value: '1,000/month' },
+      { name: 'Data Export', value: 'CSV' },
+      { name: 'Email Support', value: '✓' }
     ]
   }
 ];
@@ -388,22 +333,14 @@ function PricingPage({}: PricingPageProps) {
                 <div className="comparison-table">
                   <div className="comparison-header">
                     <div className="feature-column">Feature</div>
-                    <div className="plan-column">Starter</div>
-                    <div className="plan-column">Professional</div>
-                    <div className="plan-column">Enterprise</div>
+                    <div className="plan-column">Starter Plan</div>
                   </div>
                   
                   {category.features.map((feature, featureIndex) => (
                     <div key={featureIndex} className="comparison-row">
                       <div className="feature-name">{feature.name}</div>
-                      <div className={`feature-value ${feature.starter === '—' ? 'unavailable' : 'available'}`}>
-                        {feature.starter}
-                      </div>
-                      <div className={`feature-value ${feature.professional === '—' ? 'unavailable' : 'available'}`}>
-                        {feature.professional}
-                      </div>
-                      <div className={`feature-value ${feature.enterprise === '—' ? 'unavailable' : 'available'}`}>
-                        {feature.enterprise}
+                      <div className={`feature-value ${feature.value === '—' ? 'unavailable' : 'available'}`}>
+                        {feature.value}
                       </div>
                     </div>
                   ))}
@@ -442,10 +379,10 @@ function PricingPage({}: PricingPageProps) {
 
           <div className="final-cta">
             <div className="cta-options">
-              <button 
-                className="cta primary large" 
+              <button
+                className="cta primary large"
                 type="button"
-                onClick={() => handleSelectPlan('professional', 14)}
+                onClick={() => handleSelectPlan('starter', 14)}
                 disabled={isLoading}
               >
                 {isLoading ? 'Starting Trial...' : 'Start Free Trial'}
