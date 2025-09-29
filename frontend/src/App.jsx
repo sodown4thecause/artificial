@@ -2,8 +2,6 @@ import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import './App.css';
-// Clerk Auth (now properly configured)
-import { AuthProvider } from './providers/ClerkAuthProvider.jsx';
 import Header from './components/Header';
 
 const LandingPage = lazy(() => import('./pages/LandingPage.tsx'));
@@ -17,7 +15,7 @@ const FAQPage = lazy(() => import('./pages/FAQPage.tsx'));
 
 function App() {
   return (
-    <AuthProvider>
+    <>
       <Header />
       <Suspense fallback={<div className="app-shell loading-state">Loading...</div>}>
         <Routes>
@@ -31,7 +29,7 @@ function App() {
           <Route path="/faq" element={<FAQPage />} />
         </Routes>
       </Suspense>
-    </AuthProvider>
+    </>
   );
 }
 

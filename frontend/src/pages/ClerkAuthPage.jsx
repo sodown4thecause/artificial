@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { SignIn, SignUp, useAuth as useClerkAuth } from '@clerk/clerk-react';
+import { SignIn, SignUp, useAuth } from '@clerk/clerk-react';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
 
 function ClerkAuthPage() {
@@ -34,7 +34,7 @@ function ClerkAuthPage() {
     );
   }
   
-  const { isSignedIn, isLoaded, getToken } = useClerkAuth();
+  const { isSignedIn, isLoaded, getToken } = useAuth();
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {

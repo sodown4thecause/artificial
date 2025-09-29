@@ -1,32 +1,18 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth, UserButton } from '@clerk/clerk-react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  SignedIn, 
+  SignedOut, 
+  SignInButton, 
+  UserButton 
+} from '@clerk/clerk-react';
 import { Button } from './ui/button';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import brandLogo from '../logo.svg';
 
 function Header() {
-  const { isSignedIn, isLoaded } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const handleAuthAction = () => {
-    if (isSignedIn) {
-      // User is signed in, could add sign out functionality here if needed
-      // For now, the UserButton handles sign out
-    } else {
-      navigate('/clerk-auth');
-    }
-  };
-
-  const handleDashboardClick = () => {
-    navigate('/dashboard');
-  };
-
-  const handlePricingClick = () => {
-    navigate('/pricing');
-  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -90,37 +76,30 @@ function Header() {
 
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
-            {isLoaded && (
-              <>
-                {isSignedIn ? (
-                  <div className="flex items-center space-x-4">
-                    <Button
-                      onClick={handleDashboardClick}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      Dashboard
-                    </Button>
-                    <UserButton
-                      appearance={{
-                        elements: {
-                          avatarBox: {
-                            width: '32px',
-                            height: '32px'
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <Button
-                    onClick={handleAuthAction}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Sign In
-                  </Button>
-                )}
-              </>
-            )}
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  Sign In
+                </Button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <Link to="/dashboard">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  Dashboard
+                </Button>
+              </Link>
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: {
+                      width: '32px',
+                      height: '32px'
+                    }
+                  }
+                }}
+              />
+            </SignedIn>
 
             {/* Mobile menu button */}
             <button

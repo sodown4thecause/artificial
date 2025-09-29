@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../providers/AuthProvider.jsx';
+import { useAuth } from '@clerk/clerk-react';
 import type { BillingStatus } from '../types/workflow';
 import brandLogo from '../logo.svg';
 import './pricing.css';
@@ -106,7 +106,27 @@ interface PricingPageProps {}
 
 function PricingPage({}: PricingPageProps) {
   const navigate = useNavigate();
-  const { accessToken, user } = useAuth();
+  const { user, getToken, isSignedIn } = useAuth();
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  
+  // Get access token when user is signed in
+  useEffect(() => {
+    const fetchToken = async () => {
+      if (isSignedIn) {
+        try {
+          const token = await getToken();
+          setAccessToken(token);
+        } catch (error) {
+          console.error('Failed to get token:', error);
+          setAccessToken(null);
+        }
+      } else {
+        setAccessToken(null);
+      }
+    };
+    
+    fetchToken();
+  }, [isSignedIn, getToken]);
   const [billingStatus, setBillingStatus] = useState<BillingStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
