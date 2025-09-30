@@ -29,7 +29,7 @@ const TrialSignupPage: React.FC = () => {
       const token = await getToken();
       if (!token) return;
       
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-trial-status`, {
+      const response = await fetch('/functions/v1/check-trial-status', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

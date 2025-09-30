@@ -44,7 +44,7 @@ const TrialSignup = ({ onTrialStarted, defaultCoupon = '' }) => {
         return;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-trial-checkout`, {
+      const response = await fetch('/functions/v1/create-trial-checkout', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,

@@ -36,7 +36,7 @@ function OnboardingPage() {
           throw new Error('Unable to obtain session token. Please sign in again.');
         }
 
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/run-intelligence-workflow`, {
+        const response = await fetch('/functions/v1/run-intelligence-workflow', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

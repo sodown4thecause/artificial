@@ -17,7 +17,7 @@ export const useTrialStatus = () => {
         return;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-trial-status`, {
+      const response = await fetch('/functions/v1/check-trial-status', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
@@ -47,7 +47,7 @@ export const useTrialStatus = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-trial-checkout`, {
+      const response = await fetch('/functions/v1/create-trial-checkout', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
