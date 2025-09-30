@@ -36,10 +36,15 @@ function OnboardingPage() {
           throw new Error('Unable to obtain session token. Please sign in again.');
         }
 
+        // Use Supabase anon key for Authorization to pass Supabase JWT validation
+        // Send Clerk token in custom header for actual authentication
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        
         const response = await fetch('/functions/v1/run-intelligence-workflow', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseAnonKey}`,
             'x-clerk-token': token
           },
           body: JSON.stringify({
