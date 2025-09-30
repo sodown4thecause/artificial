@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '@clerk/clerk-react';
+// Force deployment trigger - 2025-09-30
 import type { BillingStatus } from '../types/workflow';
 import brandLogo from '../logo.svg';
 import ComparisonSection from '../components/ComparisonSection';
