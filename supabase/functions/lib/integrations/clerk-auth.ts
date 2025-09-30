@@ -10,12 +10,17 @@ interface ClerkUser {
 }
 
 export async function verifyClerkToken(request: Request): Promise<{ user: ClerkUser; supabaseClient: any } | { error: string; status: number }> {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader) {
-    return { error: 'Unauthorized', status: 401 };
+  // Try to get token from custom header first (bypasses Supabase JWT validation)
+  let token = request.headers.get('x-clerk-token');
+  
+  if (!token) {
+    // Fallback to Authorization header
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return { error: 'Unauthorized', status: 401 };
+    }
+    token = authHeader.replace('Bearer ', '');
   }
-
-  const token = authHeader.replace('Bearer ', '');
   
   // For Clerk tokens, we need to verify with Clerk's API
   const clerkSecretKey = Deno.env.get('CLERK_SECRET_KEY');

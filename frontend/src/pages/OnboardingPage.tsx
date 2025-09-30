@@ -40,7 +40,7 @@ function OnboardingPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
+            'x-clerk-token': token
           },
           body: JSON.stringify({
             fullName: values.fullName,
