@@ -35,6 +35,9 @@ export async function triggerWorkflow(
 ): Promise<WorkflowTriggerResult> {
   // Check daily rate limit before proceeding
   console.log('🚫 Checking daily rate limit...');
+  console.log('User ID:', user.id, 'Type:', typeof user.id);
+  console.log('IP Address:', ipAddress);
+  
   const { data: rateLimitResult, error: rateLimitError } = await supabase
     .rpc('check_and_increment_daily_limit', {
       p_user_id: user.id,
@@ -42,9 +45,16 @@ export async function triggerWorkflow(
       p_daily_limit: 10
     });
 
+  console.log('Rate limit RPC result:', rateLimitResult);
+  console.log('Rate limit RPC error:', rateLimitError);
+
   if (rateLimitError) {
     console.error('Rate limit check failed:', rateLimitError);
-    throw new Error('Unable to verify daily usage limits. Please try again.');
+    console.error('Error code:', rateLimitError.code);
+    console.error('Error message:', rateLimitError.message);
+    console.error('Error details:', rateLimitError.details);
+    console.error('Error hint:', rateLimitError.hint);
+    throw new Error(`Unable to verify daily usage limits. Please try again. Error: ${rateLimitError.message} (${rateLimitError.code})`);
   }
 
   if (!rateLimitResult.allowed) {
