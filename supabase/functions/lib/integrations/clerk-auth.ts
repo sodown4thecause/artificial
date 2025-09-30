@@ -28,13 +28,25 @@ export async function verifyClerkToken(request: Request): Promise<{ user: ClerkU
     // Clerk tokens are standard JWTs with format: header.payload.signature
     const parts = token.split('.');
     if (parts.length !== 3) {
+      console.error('Invalid token format - not 3 parts');
       return { error: 'Invalid token format', status: 401 };
     }
     
-    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    let payload;
+    try {
+      // Base64 decode the payload
+      const base64Payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      payload = JSON.parse(atob(base64Payload));
+    } catch (e) {
+      console.error('Failed to decode token payload:', e);
+      return { error: 'Invalid token encoding', status: 401 };
+    }
+    
     const userId = payload.sub;
+    console.log('Decoded Clerk token for user:', userId);
     
     if (!userId) {
+      console.error('No user ID in token payload');
       return { error: 'Invalid token payload', status: 401 };
     }
     
@@ -46,11 +58,13 @@ export async function verifyClerkToken(request: Request): Promise<{ user: ClerkU
     });
 
     if (!userResponse.ok) {
-      console.error('Failed to fetch Clerk user:', await userResponse.text());
+      const errorText = await userResponse.text();
+      console.error('Failed to fetch Clerk user:', userResponse.status, errorText);
       return { error: 'Failed to get user data', status: 401 };
     }
 
     const userData = await userResponse.json();
+    console.log('Fetched Clerk user data for:', userData.id);
     
     const user: ClerkUser = {
       id: userData.id,

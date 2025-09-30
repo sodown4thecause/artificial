@@ -19,31 +19,25 @@ serve(async (request) => {
       return new Response('Service misconfigured', { status: 500 });
     }
 
-    // Try Clerk authentication first, fallback to Supabase
-    let user, supabaseClient;
-    
+    // Try Clerk authentication
+    console.log('Attempting Clerk authentication...');
     const clerkResult = await getClerkUser(request);
+    
     if (clerkResult.error) {
-      // Fallback to Supabase auth
-      supabaseClient = createClient(supabaseUrl, serviceRoleKey, {
-        auth: { persistSession: false }
+      console.error('Clerk authentication failed:', clerkResult.error);
+      return new Response(JSON.stringify({
+        error: 'AUTHENTICATION_FAILED',
+        message: 'Unable to authenticate. Please sign in again.',
+        details: clerkResult.error.message
+      }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
       });
-
-      const authHeader = request.headers.get('Authorization');
-      if (!authHeader) {
-        return new Response('Unauthorized', { status: 401 });
-      }
-
-      const token = authHeader.replace('Bearer ', '');
-      const { data: supabaseUser, error: userError } = await supabaseClient.auth.getUser(token);
-      if (userError || !supabaseUser?.user) {
-        return new Response('Invalid token', { status: 401 });
-      }
-      user = supabaseUser;
-    } else {
-      user = clerkResult.data;
-      supabaseClient = clerkResult.supabaseClient;
     }
+    
+    const user = clerkResult.data;
+    const supabaseClient = clerkResult.supabaseClient;
+    console.log('Clerk authentication successful for user:', user.user?.id);
 
     const forwardedFor = request.headers.get('x-forwarded-for') ?? '';
     const ipAddress = forwardedFor.split(',')[0]?.trim() ?? 'unknown';
