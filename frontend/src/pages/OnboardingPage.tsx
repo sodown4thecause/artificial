@@ -51,17 +51,27 @@ function OnboardingPage() {
         });
 
         if (!response.ok) {
-          const errorDetail = await response.json().catch(() => null);
+          const errorText = await response.text();
+          console.error('Workflow API error:', { status: response.status, body: errorText });
+          
+          let errorDetail;
+          try {
+            errorDetail = JSON.parse(errorText);
+          } catch {
+            throw new Error(`Server error (${response.status}): ${errorText.substring(0, 200)}`);
+          }
+          
           if (errorDetail?.error === 'IP_LIMIT_EXCEEDED') {
             throw new Error(
               'We detected an account from this network already. Only one free launch account is allowed per IP during the trial.'
             );
           }
 
-          throw new Error(errorDetail?.message || 'Workflow failed to start');
+          throw new Error(errorDetail?.message || `Workflow failed to start (${response.status})`);
         }
 
         const result = await response.json();
+        console.log('Workflow started successfully:', result);
         
         setStatus({
           state: 'success',
