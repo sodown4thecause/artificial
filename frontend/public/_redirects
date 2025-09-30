@@ -1,5 +1,5 @@
-# Proxy API requests to Supabase functions
-/functions/v1/*  https://efynkraanhjwfjetnccp.supabase.co/functions/v1/:splat  200
+# Proxy API requests to Supabase functions (preserve method and headers)
+/functions/v1/*  https://efynkraanhjwfjetnccp.supabase.co/functions/v1/:splat  200!
 
 # SPA fallback for React Router
 /*  /index.html  200
