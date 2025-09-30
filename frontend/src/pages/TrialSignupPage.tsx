@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../providers/AuthProvider.jsx';
+import { useAuth } from '@clerk/clerk-react';
 import TrialSignup from '../components/TrialSignup';
 
 const TrialSignupPage: React.FC = () => {
-  const { session, loading } = useAuth();
+  const { isSignedIn, isLoaded, getToken } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [checkingStatus, setCheckingStatus] = useState(true);
@@ -14,21 +14,24 @@ const TrialSignupPage: React.FC = () => {
   const onboardingComplete = location.state?.onboardingComplete;
 
   useEffect(() => {
-    if (!loading && !session) {
-      navigate('/auth', { replace: true });
+    if (isLoaded && !isSignedIn) {
+      window.location.href = 'https://accounts.artificialintelligentsia.co/sign-in';
       return;
     }
 
-    if (session) {
+    if (isSignedIn) {
       checkUserTrialStatus();
     }
-  }, [session, loading, navigate]);
+  }, [isSignedIn, isLoaded, navigate]);
 
   const checkUserTrialStatus = async () => {
     try {
+      const token = await getToken();
+      if (!token) return;
+      
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-trial-status`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -58,7 +61,7 @@ const TrialSignupPage: React.FC = () => {
     navigate('/dashboard', { state: { trialJustStarted: true } });
   };
 
-  if (loading || checkingStatus) {
+  if (!isLoaded || checkingStatus) {
     return (
       <div className="trial-loading">
         <div className="spinner"></div>

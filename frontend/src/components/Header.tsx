@@ -18,11 +18,9 @@ function Header() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const isAuthPage = location.pathname === '/clerk-auth';
+  // Hide header only on onboarding page
   const isOnboardingPage = location.pathname === '/onboarding';
-
-  // Don't show header on auth and onboarding pages
-  if (isAuthPage || isOnboardingPage) {
+  if (isOnboardingPage) {
     return null;
   }
 

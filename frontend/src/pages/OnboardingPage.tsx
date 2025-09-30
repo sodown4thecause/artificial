@@ -2,33 +2,37 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import OnboardingForm from '../components/onboarding/OnboardingForm';
-import { useAuth } from '../providers/AuthProvider.jsx';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import type { OnboardingFormValues, WorkflowStatus } from '../types/workflow';
 
 const initialStatus: WorkflowStatus = { state: 'idle' };
 
 function OnboardingPage() {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
   const [status, setStatus] = useState<WorkflowStatus>(initialStatus);
 
   const defaultValues = useMemo<Partial<OnboardingFormValues>>(
-    () => ({ fullName: session?.user?.user_metadata?.full_name ?? '' }),
-    [session]
+    () => ({ 
+      fullName: user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || ''
+    }),
+    [user]
   );
 
   const handleSubmit = useCallback(
     async (values: OnboardingFormValues) => {
-      if (!session) {
+      if (!isSignedIn) {
         setStatus({ state: 'error', message: 'Your session expired. Please log in again.' });
-        navigate('/clerk-auth', { replace: true });
+        window.location.href = 'https://accounts.artificialintelligentsia.co/sign-in';
         return;
       }
 
       setStatus({ state: 'submitting', message: 'Generating your intelligence report…' });
 
       try {
-        if (!session.access_token) {
+        const token = await getToken();
+        if (!token) {
           throw new Error('Unable to obtain session token. Please sign in again.');
         }
 
@@ -36,7 +40,7 @@ function OnboardingPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({
             fullName: values.fullName,
@@ -80,7 +84,7 @@ function OnboardingPage() {
         });
       }
     },
-    [navigate, session]
+    [navigate, isSignedIn, getToken]
   );
 
   return (

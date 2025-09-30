@@ -159,7 +159,7 @@ function PricingPage({}: PricingPageProps) {
 
   const handleSelectPlan = async (planId: string, trialDays: number) => {
     if (!accessToken) {
-      navigate('/clerk-auth');
+      window.location.href = 'https://accounts.artificialintelligentsia.co/sign-up';
       return;
     }
 
@@ -407,9 +407,12 @@ function PricingPage({}: PricingPageProps) {
               >
                 {isLoading ? 'Starting Trial...' : 'Start Free Trial'}
               </button>
-              <Link className="cta tertiary large" to="/clerk-auth">
+              <a 
+                className="cta tertiary large" 
+                href="https://accounts.artificialintelligentsia.co/sign-up"
+              >
                 Sign Up Now
-              </Link>
+              </a>
             </div>
             <p className="cta-subtext">
               ✓ 14-day free trial &nbsp;&nbsp; ✓ No credit card required &nbsp;&nbsp; ✓ Cancel anytime

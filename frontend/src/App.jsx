@@ -5,7 +5,6 @@ import './App.css';
 import Header from './components/Header';
 
 const LandingPage = lazy(() => import('./pages/LandingPage.tsx'));
-const ClerkAuthPage = lazy(() => import('./pages/ClerkAuthPage.jsx'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage.tsx'));
 const TrialSignupPage = lazy(() => import('./pages/TrialSignupPage.tsx'));
 const ReportPage = lazy(() => import('./pages/dashboard/Report.tsx'));
@@ -20,7 +19,6 @@ function App() {
       <Suspense fallback={<div className="app-shell loading-state">Loading...</div>}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/clerk-auth" element={<ClerkAuthPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/trial-signup" element={<TrialSignupPage />} />
           <Route path="/dashboard" element={<ReportPage />} />

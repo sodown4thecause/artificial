@@ -15,7 +15,14 @@ if (!PUBLISHABLE_KEY) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+    <ClerkProvider 
+      publishableKey={PUBLISHABLE_KEY}
+      signInUrl="https://accounts.artificialintelligentsia.co/sign-in"
+      signUpUrl="https://accounts.artificialintelligentsia.co/sign-up"
+      afterSignInUrl="/onboarding"
+      afterSignUpUrl="/onboarding"
+      afterSignOutUrl="/"
+    >
       <BrowserRouter>
         <App />
       </BrowserRouter>

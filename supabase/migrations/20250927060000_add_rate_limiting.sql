@@ -198,10 +198,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ALTER TABLE public.daily_report_limits ENABLE ROW LEVEL SECURITY;
 
 -- Users can only see their own records
+DROP POLICY IF EXISTS "Users can view own daily limits" ON public.daily_report_limits;
 CREATE POLICY "Users can view own daily limits" ON public.daily_report_limits
   FOR SELECT USING (auth.uid() = user_id);
 
 -- Service role can manage all records (for rate limiting functions)
+DROP POLICY IF EXISTS "Service role can manage daily limits" ON public.daily_report_limits;
 CREATE POLICY "Service role can manage daily limits" ON public.daily_report_limits
   FOR ALL USING (auth.role() = 'service_role');
 
