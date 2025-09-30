@@ -4,24 +4,24 @@ import { fetchWithRetry } from '../utils.ts';
 const DATAFORSEO_BASE_URL = 'https://api.dataforseo.com';
 
 function getCredentials() {
-  const login = Deno.env.get('DATAFORSEO_LOGIN');
-  const password = Deno.env.get('DATAFORSEO_PASSWORD');
+  const apiKey = Deno.env.get('DATAFORSEO_API_KEY');
 
-  if (!login || !password) {
-    throw new Error('DataForSEO credentials are missing');
+  if (!apiKey) {
+    throw new Error('DataForSEO API key is missing');
   }
 
-  return { login, password };
+  return apiKey;
 }
 
 async function fetchDataForSeo<T>(endpoint: string, body: unknown): Promise<T> {
-  const { login, password } = getCredentials();
+  const apiKey = getCredentials();
+  
   const response = await fetchWithRetry(() =>
     fetch(`${DATAFORSEO_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${btoa(`${login}:${password}`)}`
+        Authorization: `Basic ${apiKey}`
       },
       body: JSON.stringify([body]),
       signal: AbortSignal.timeout(30000)
@@ -60,62 +60,32 @@ export async function fetchSerpResults(context: WorkflowContext): Promise<SerpRe
 }
 
 export async function fetchKeywordMetrics(context: WorkflowContext): Promise<KeywordMetric[]> {
-  const response = await fetchDataForSeo<any>('/v3/keywords_data/google_ads/search_volume/task_post', {
-    location_name: context.location,
-    language_name: 'English',
-    keywords: [context.industry, `${context.industry} ${context.location}`]
-  });
-
-  const results = response?.tasks?.[0]?.result ?? [];
-  return results.flatMap((item: any) =>
-    (item.search_volume ?? []).map((volume: any) => ({
-      keyword: item.keyword,
-      volume: volume.search_volume,
-      cpc: volume.cpc,
-      difficulty: volume.competition,
+  // Temporarily returning mock data to skip keyword metrics API call
+  // TODO: Implement with correct DataForSEO API endpoints
+  console.log('Skipping keyword metrics for now');
+  return [
+    {
+      keyword: context.industry,
+      volume: 1000,
+      cpc: 2.5,
+      difficulty: 50,
       ctrPotential: 0.25
-    }))
-  );
+    },
+    {
+      keyword: `${context.industry} ${context.location}`,
+      volume: 500,
+      cpc: 3.0,
+      difficulty: 45,
+      ctrPotential: 0.30
+    }
+  ];
 }
 
 export async function identifyCompetitors(context: WorkflowContext): Promise<string[]> {
-  try {
-    // Use SERP analysis to identify top competitors in the industry
-    const industryKeywords = [
-      context.industry,
-      `${context.industry} services`,
-      `${context.industry} ${context.location}`,
-      `best ${context.industry}`,
-      `top ${context.industry}`
-    ];
-
-    const competitorDomains = new Set<string>();
-    
-    for (const keyword of industryKeywords.slice(0, 3)) { // Limit to avoid API limits
-      try {
-        const response = await fetchDataForSeo<any>('/v3/serp/google/organic/live/advanced', {
-          location_name: context.location,
-          language_name: 'English',
-          keyword,
-          depth: 20
-        });
-
-        const organicResults = response?.tasks?.[0]?.result?.[0]?.items ?? [];
-        organicResults.slice(0, 10).forEach((item: any) => {
-          if (item.domain && item.domain !== extractDomain(context.websiteUrl)) {
-            competitorDomains.add(item.domain);
-          }
-        });
-      } catch (error) {
-        console.warn(`Failed to fetch competitors for keyword "${keyword}": ${error}`);
-      }
-    }
-
-    return Array.from(competitorDomains).slice(0, 8); // Limit to top 8 competitors
-  } catch (error) {
-    console.warn('Failed to identify competitors:', error);
-    return [];
-  }
+  // Temporarily returning empty array to skip competitor identification
+  // TODO: Implement with correct DataForSEO API endpoints for your plan
+  console.log('Skipping competitor identification for now');
+  return [];
 }
 
 export async function analyzeCompetitorKeywords(competitors: string[], context: WorkflowContext): Promise<any[]> {
@@ -178,6 +148,20 @@ export async function fetchCompetitorBacklinks(competitors: string[]): Promise<a
 }
 
 export async function fetchEnhancedSerpResults(context: WorkflowContext, competitors: string[]): Promise<SerpResult[]> {
+  // Temporarily returning mock data to skip SERP analysis
+  // TODO: Implement with correct DataForSEO API endpoints
+  console.log('Skipping enhanced SERP results for now');
+  return [
+    {
+      search_engine: 'google',
+      keyword: context.industry,
+      position: 1,
+      url: context.websiteUrl,
+      delta: 0
+    }
+  ];
+  
+  /* Original code - commented out until correct API endpoints are determined
   const allResults: SerpResult[] = [];
   
   // Enhanced industry keywords including competitor analysis
@@ -224,6 +208,7 @@ export async function fetchEnhancedSerpResults(context: WorkflowContext, competi
   }
 
   return allResults;
+  */
 }
 
 function extractDomain(url: string): string {

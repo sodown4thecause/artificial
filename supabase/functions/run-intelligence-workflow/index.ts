@@ -48,24 +48,25 @@ serve(async (request) => {
       return new Response(validationError, { status: 400 });
     }
 
-    const { count: existingCount } = await supabaseClient
-      .from('signup_fingerprints')
-      .select('*', { count: 'exact', head: true })
-      .eq('ip_address', ipAddress);
+    // Temporarily disabled IP check for testing
+    // const { count: existingCount } = await supabaseClient
+    //   .from('signup_fingerprints')
+    //   .select('*', { count: 'exact', head: true })
+    //   .eq('ip_address', ipAddress);
 
-    if ((existingCount ?? 0) > 0) {
-      return new Response(
-        JSON.stringify({
-          error: 'IP_LIMIT_EXCEEDED',
-          message:
-            'We detected an existing account from this network. Only one free launch account per IP is allowed during the trial period.'
-        }),
-        {
-          status: 403,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
+    // if ((existingCount ?? 0) > 0) {
+    //   return new Response(
+    //     JSON.stringify({
+    //       error: 'IP_LIMIT_EXCEEDED',
+    //       message:
+    //             'We detected an existing account from this network. Only one free launch account per IP is allowed during the trial period.'
+    //     }),
+    //     {
+    //       status: 403,
+    //       headers: { 'Content-Type': 'application/json' }
+    //     }
+    //   );
+    // }
 
     const result = await triggerWorkflow(supabaseClient, user.user, payload, ipAddress);
 

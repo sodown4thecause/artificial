@@ -39,9 +39,18 @@ export async function verifyClerkToken(request: Request): Promise<{ user: ClerkU
     
     let payload;
     try {
-      // Base64 decode the payload
+      // Base64 decode the payload (Deno-compatible)
       const base64Payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-      payload = JSON.parse(atob(base64Payload));
+      // Pad the base64 string if needed
+      const paddedPayload = base64Payload + '='.repeat((4 - base64Payload.length % 4) % 4);
+      // Decode using Deno's decoder
+      const decoder = new TextDecoder();
+      const uint8Array = Uint8Array.from(
+        globalThis.atob(paddedPayload),
+        (c) => c.charCodeAt(0)
+      );
+      const jsonString = decoder.decode(uint8Array);
+      payload = JSON.parse(jsonString);
     } catch (e) {
       console.error('Failed to decode token payload:', e);
       return { error: 'Invalid token encoding', status: 401 };

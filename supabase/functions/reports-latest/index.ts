@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.5';
+import { getClerkUser } from '../lib/integrations/clerk-auth.ts';
 
 serve(async (request) => {
   if (request.method !== 'GET') {
@@ -13,42 +14,110 @@ serve(async (request) => {
     return new Response('Service misconfigured', { status: 500 });
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false }
-  });
-
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader) {
-    return new Response('Unauthorized', { status: 401 });
+  // Use Clerk authentication
+  const clerkResult = await getClerkUser(request);
+  
+  if (clerkResult.error) {
+    return new Response(JSON.stringify({
+      error: 'AUTHENTICATION_FAILED',
+      message: 'Unable to authenticate. Please sign in again.'
+    }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
-
-  const token = authHeader.replace('Bearer ', '');
-  const { data: user, error: userError } = await supabase.auth.getUser(token);
-  if (userError || !user?.user) {
-    return new Response('Invalid token', { status: 401 });
-  }
+  
+  const user = clerkResult.data.user;
+  const supabase = clerkResult.supabaseClient;
 
   const { data: report, error } = await supabase
     .from('reports')
     .select('payload, workflow_runs!inner(user_id)')
-    .eq('workflow_runs.user_id', user.user.id)
+    .eq('workflow_runs.user_id', user.id)
     .order('captured_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (error) {
     console.error('Failed to fetch report', error);
-    return new Response('Failed to fetch report', { status: 500 });
+    return new Response(JSON.stringify({ error: 'Failed to fetch report' }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   if (!report) {
-    return new Response(JSON.stringify({ message: 'No report available yet.' }), {
+    // Check if there's a workflow in progress
+    const { data: workflow } = await supabase
+      .from('workflow_runs')
+      .select('id, status, triggered_at')
+      .eq('user_id', user.id)
+      .order('triggered_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (workflow && (workflow.status === 'queued' || workflow.status === 'running')) {
+      return new Response(JSON.stringify({ 
+        status: 'processing',
+        message: 'Your intelligence report is being generated. This may take a few minutes.',
+        workflowStatus: workflow.status,
+        triggeredAt: workflow.triggered_at
+      }), {
+        status: 202, // Accepted - still processing
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    return new Response(JSON.stringify({ 
+      status: 'not_found',
+      message: 'No report available yet. Please complete the onboarding process.' 
+    }), {
       status: 404,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
-  return new Response(JSON.stringify(report.payload), {
+  // Transform old report format to new format if necessary
+  const payload = report.payload;
+  
+  // Check if report has old structure (overview instead of summary)
+  if (payload.overview && !payload.summary) {
+    console.log('Transforming old report format to new format');
+    const capturedAt = payload.overview.generated_at || new Date().toISOString();
+    
+    const transformedPayload = {
+      summary: {
+        id: 'legacy-report',
+        captured_at: capturedAt,
+        executive_summary: `Report for ${payload.overview.website || 'your website'}. Industry: ${payload.overview.industry || 'N/A'}. Location: ${payload.overview.location || 'N/A'}.`,
+        recommendations: [
+          {
+            title: 'Legacy Report',
+            description: 'This report was generated with an older format. Please regenerate your report for the latest insights.',
+            confidence: 0.5
+          }
+        ]
+      },
+      serpTimeline: payload.serp_timeline || [],
+      keywordOpportunities: payload.keywordOpportunities || [],
+      sentiment: payload.contentSentiment || [],
+      backlinks: payload.backlinks || [],
+      coreWebVitals: Array.isArray(payload.coreWebVitals) ? payload.coreWebVitals : [
+        { metric: 'LCP', desktop: 0, mobile: 0 },
+        { metric: 'FID', desktop: 0, mobile: 0 },
+        { metric: 'CLS', desktop: 0, mobile: 0 }
+      ],
+      techStack: payload.techStack || []
+    };
+    
+    return new Response(JSON.stringify(transformedPayload), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  // Return report as-is if it's already in the correct format
+  return new Response(JSON.stringify(payload), {
     status: 200,
     headers: { 'Content-Type': 'application/json' }
   });
