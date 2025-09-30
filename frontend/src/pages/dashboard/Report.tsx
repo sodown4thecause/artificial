@@ -256,7 +256,31 @@ function ReportPage() {
   }
 
   if (error || !data) {
-    return <div className="app-shell loading-state">Unable to load report: {error}</div>;
+    return (
+      <div className="app-shell">
+        <main className="dashboard-container" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <div className="empty-state">
+            <h1>Welcome to Your Intelligence Dashboard</h1>
+            <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: '#666' }}>
+              {error?.includes('<!doctype') || error?.includes('Unexpected token') 
+                ? "You haven't completed the onboarding workflow yet."
+                : `Unable to load report: ${error}`}
+            </p>
+            <p style={{ marginBottom: '2rem' }}>
+              Complete the onboarding process to generate your first AI-powered business intelligence report.
+            </p>
+            <button 
+              className="cta primary" 
+              type="button" 
+              onClick={() => navigate('/onboarding')}
+              style={{ padding: '1rem 2rem', fontSize: '1.1rem' }}
+            >
+              Start Onboarding
+            </button>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
