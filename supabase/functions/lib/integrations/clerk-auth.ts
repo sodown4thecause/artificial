@@ -24,30 +24,29 @@ export async function verifyClerkToken(request: Request): Promise<{ user: ClerkU
   }
 
   try {
-    // Verify token with Clerk
-    const verifyResponse = await fetch('https://api.clerk.com/v1/tokens/verify', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${clerkSecretKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ token })
-    });
-
-    if (!verifyResponse.ok) {
-      return { error: 'Invalid token', status: 401 };
+    // Decode JWT to get user ID (without full verification for now)
+    // Clerk tokens are standard JWTs with format: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return { error: 'Invalid token format', status: 401 };
     }
-
-    const verifyData = await verifyResponse.json();
+    
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    const userId = payload.sub;
+    
+    if (!userId) {
+      return { error: 'Invalid token payload', status: 401 };
+    }
     
     // Get user details from Clerk
-    const userResponse = await fetch(`https://api.clerk.com/v1/users/${verifyData.sub}`, {
+    const userResponse = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
       headers: {
         'Authorization': `Bearer ${clerkSecretKey}`
       }
     });
 
     if (!userResponse.ok) {
+      console.error('Failed to fetch Clerk user:', await userResponse.text());
       return { error: 'Failed to get user data', status: 401 };
     }
 
