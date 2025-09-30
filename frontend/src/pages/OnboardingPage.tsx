@@ -39,8 +39,14 @@ function OnboardingPage() {
         // Use Supabase anon key for Authorization to pass Supabase JWT validation
         // Send Clerk token in custom header for actual authentication
         const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         
-        const response = await fetch('/functions/v1/run-intelligence-workflow', {
+        if (!supabaseUrl) {
+          throw new Error('Supabase URL not configured');
+        }
+        
+        const apiUrl = `${supabaseUrl}/functions/v1/run-intelligence-workflow`;
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

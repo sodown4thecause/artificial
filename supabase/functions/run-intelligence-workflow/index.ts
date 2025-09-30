@@ -5,9 +5,26 @@ import { triggerWorkflow } from '../lib/workflow-orchestrator.ts';
 import type { OnboardingPayload } from '../lib/types.ts';
 import { getClerkUser } from '../lib/integrations/clerk-auth.ts';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-clerk-token',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
 serve(async (request) => {
+  // Handle CORS preflight requests
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders
+    });
+  }
+  
   if (request.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+    return new Response('Method not allowed', { 
+      status: 405,
+      headers: corsHeaders
+    });
   }
 
   try {
@@ -31,7 +48,7 @@ serve(async (request) => {
         details: clerkResult.error.message
       }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     
@@ -82,7 +99,7 @@ serve(async (request) => {
       }
     }), {
       status: 202,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('Workflow trigger failed:', error);
@@ -103,6 +120,7 @@ serve(async (request) => {
       }), {
         status: 429, // Too Many Requests
         headers: {
+          ...corsHeaders,
           'Content-Type': 'application/json',
           'Retry-After': '86400' // 24 hours in seconds
         }
@@ -115,7 +133,7 @@ serve(async (request) => {
       details: error.stack || 'No stack trace available'
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 });

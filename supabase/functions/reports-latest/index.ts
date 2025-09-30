@@ -2,9 +2,26 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.5';
 import { getClerkUser } from '../lib/integrations/clerk-auth.ts';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-clerk-token',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS'
+};
+
 serve(async (request) => {
+  // Handle CORS preflight requests
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders
+    });
+  }
+  
   if (request.method !== 'GET') {
-    return new Response('Method not allowed', { status: 405 });
+    return new Response('Method not allowed', { 
+      status: 405,
+      headers: corsHeaders
+    });
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -23,7 +40,7 @@ serve(async (request) => {
       message: 'Unable to authenticate. Please sign in again.'
     }), {
       status: 401,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
   
@@ -42,7 +59,7 @@ serve(async (request) => {
     console.error('Failed to fetch report', error);
     return new Response(JSON.stringify({ error: 'Failed to fetch report' }), { 
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 
@@ -64,7 +81,7 @@ serve(async (request) => {
         triggeredAt: workflow.triggered_at
       }), {
         status: 202, // Accepted - still processing
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     
@@ -73,7 +90,7 @@ serve(async (request) => {
       message: 'No report available yet. Please complete the onboarding process.' 
     }), {
       status: 404,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 
@@ -112,14 +129,14 @@ serve(async (request) => {
     
     return new Response(JSON.stringify(transformedPayload), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 
   // Return report as-is if it's already in the correct format
   return new Response(JSON.stringify(payload), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   });
 });
 
