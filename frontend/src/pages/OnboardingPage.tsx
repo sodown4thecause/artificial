@@ -65,16 +65,17 @@ function OnboardingPage() {
         
         setStatus({
           state: 'success',
-          message: 'We started building your intelligence report. You will receive an email when it is ready.'
+          message: 'We started building your intelligence report. Redirecting to your dashboard...'
         });
 
-        // After successful onboarding, redirect to trial signup
+        // After successful onboarding, redirect to dashboard
         setTimeout(() => {
-          navigate('/trial-signup', { 
+          navigate('/dashboard', { 
             state: { 
               workflowId: result.workflowId, 
               onboardingComplete: true 
-            }
+            },
+            replace: true
           });
         }, 2000);
       } catch (error) {

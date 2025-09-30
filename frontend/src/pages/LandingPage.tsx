@@ -167,7 +167,7 @@ function LandingPage() {
 
   const handleUpgrade = async () => {
     if (!accessToken) {
-      navigate('/clerk-auth');
+      window.location.href = 'https://accounts.artificialintelligentsia.co/sign-up';
       return;
     }
 
@@ -217,9 +217,12 @@ function LandingPage() {
             <div className="hero-cta">
               {!accessToken && (
                 <>
-                  <Link className="cta primary" to="/clerk-auth">
+                  <a 
+                    className="cta primary" 
+                    href="https://accounts.artificialintelligentsia.co/sign-up"
+                  >
                     Start Free Trial
-                  </Link>
+                  </a>
                   <Link className="cta tertiary" to="/pricing">
                     View Pricing
                   </Link>
@@ -258,9 +261,12 @@ function LandingPage() {
                 <li>Personalized growth roadmap for your brand</li>
               </ul>
               {!accessToken ? (
-                <Link className="cta primary" to="/clerk-auth">
+                <a 
+                  className="cta primary" 
+                  href="https://accounts.artificialintelligentsia.co/sign-in"
+                >
                   Continue to Secure Sign-In
-                </Link>
+                </a>
               ) : (
                 <button className="cta primary" type="button" onClick={handleLaunchDashboard}>
                   Continue to Dashboard
@@ -358,7 +364,10 @@ function LandingPage() {
               </ul>
             </div>
             <div className="instant-cta">
-              <a className="cta secondary" href="/clerk-auth">
+              <a 
+                className="cta secondary" 
+                href="https://accounts.artificialintelligentsia.co/sign-up"
+              >
                 Start Free Trial
               </a>
               <Link className="cta tertiary" to="/pricing">

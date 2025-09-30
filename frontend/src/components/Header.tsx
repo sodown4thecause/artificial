@@ -75,11 +75,11 @@ function Header() {
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
             <SignedOut>
-              <SignInButton mode="modal">
+              <a href="https://accounts.artificialintelligentsia.co/sign-in">
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                   Sign In
                 </Button>
-              </SignInButton>
+              </a>
             </SignedOut>
             <SignedIn>
               <Link to="/dashboard">
