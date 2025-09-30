@@ -84,7 +84,10 @@ serve(async (request) => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Workflow trigger failed', error);
+    console.error('Workflow trigger failed:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
     
     // Handle rate limiting errors specifically
     if (error.message && error.message.includes('Daily report generation limit')) {
@@ -107,7 +110,8 @@ serve(async (request) => {
     
     return new Response(JSON.stringify({
       error: 'WORKFLOW_TRIGGER_FAILED',
-      message: 'Unable to start report generation. Please try again.'
+      message: error.message || 'Unable to start report generation. Please try again.',
+      details: error.stack || 'No stack trace available'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

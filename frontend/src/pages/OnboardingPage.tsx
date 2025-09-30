@@ -72,7 +72,9 @@ function OnboardingPage() {
             );
           }
 
-          throw new Error(errorDetail?.message || `Workflow failed to start (${response.status})`);
+          const errorMessage = errorDetail?.message || `Workflow failed to start (${response.status})`;
+          const errorDetails = errorDetail?.details ? `\n\nDetails: ${errorDetail.details}` : '';
+          throw new Error(errorMessage + errorDetails);
         }
 
         const result = await response.json();
