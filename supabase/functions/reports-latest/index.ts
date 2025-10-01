@@ -32,6 +32,20 @@ serve(async (request) => {
   }
 
   // Use Clerk authentication as the primary method
+  const authHeader = request.headers.get('Authorization');
+  const clerkToken = request.headers.get('x-clerk-token');
+
+  // Check if any authentication headers are present
+  if (!authHeader && !clerkToken) {
+    return new Response(JSON.stringify({
+      error: 'AUTHENTICATION_REQUIRED',
+      message: 'Authentication required. Please sign in.'
+    }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
   const clerkResult = await getClerkUser(request);
 
   if (clerkResult.error) {
