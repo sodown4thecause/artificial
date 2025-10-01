@@ -37,10 +37,6 @@ function OnboardingPage() {
           throw new Error('Unable to obtain session token. Please sign in again.');
         }
 
-        // Get the current user session token instead of using anonymous key
-        const { data: session } = await supabase.auth.getSession();
-        const sessionToken = session?.access_token;
-
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
         if (!supabaseUrl) {
@@ -52,8 +48,7 @@ function OnboardingPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionToken || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'x-clerk-token': token
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
             fullName: values.fullName,

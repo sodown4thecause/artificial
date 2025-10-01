@@ -12,7 +12,7 @@ interface ClerkUser {
 export async function verifyClerkToken(request: Request): Promise<{ user: ClerkUser; supabaseClient: any } | { error: string; status: number }> {
   // Try to get token from custom header first (bypasses Supabase JWT validation)
   let token = request.headers.get('x-clerk-token');
-  
+
   console.log('Clerk token from x-clerk-token header:', token ? 'Present' : 'Missing');
   
   if (!token) {

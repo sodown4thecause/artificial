@@ -31,57 +31,21 @@ serve(async (request) => {
     return new Response('Service misconfigured', { status: 500 });
   }
 
-  // Try Clerk authentication first, fallback to Supabase
-  let user, supabase;
-
+  // Use Clerk authentication as the primary method
   const clerkResult = await getClerkUser(request);
+
   if (clerkResult.error) {
-    // Fallback to Supabase auth
-    supabase = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false }
+    return new Response(JSON.stringify({
+      error: 'AUTHENTICATION_FAILED',
+      message: 'Unable to authenticate. Please sign in again.'
+    }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
-
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({
-        error: 'AUTHENTICATION_FAILED',
-        message: 'Unable to authenticate. Please sign in again.'
-      }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-
-    // First try to verify as a Supabase session token
-    const { data: supabaseUser, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !supabaseUser?.user) {
-      // If that fails, try the token as a Supabase anonymous key (for backward compatibility)
-      console.log('Session token verification failed, checking if anonymous key');
-      if (token === Deno.env.get('SUPABASE_ANON_KEY')) {
-        return new Response(JSON.stringify({
-          error: 'AUTHENTICATION_FAILED',
-          message: 'Anonymous access not allowed for reports. Please sign in.'
-        }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-
-      return new Response(JSON.stringify({
-        error: 'AUTHENTICATION_FAILED',
-        message: 'Invalid token. Please sign in again.'
-      }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-    user = supabaseUser;
-  } else {
-    user = clerkResult.data;
-    supabase = clerkResult.supabaseClient;
   }
+
+  const user = clerkResult.data;
+  const supabase = clerkResult.supabaseClient;
 
   const { data: report, error } = await supabase
     .from('reports')
