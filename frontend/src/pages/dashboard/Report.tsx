@@ -5,6 +5,12 @@ import { Scatter } from 'react-chartjs-2';
 import { Radar } from 'react-chartjs-2';
 import { Bar } from 'react-chartjs-2';
 import { Network } from 'vis-network/standalone';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { TrendingUp, BarChart3, Activity, Globe } from 'lucide-react';
 import {
   Chart as ChartJS,
   BarElement,
@@ -329,77 +335,174 @@ function ReportPage() {
 
   return (
     <div className="app-shell">
-      <main className="dashboard-container">
+      <main className="container mx-auto p-6 space-y-6">
         {/* Keyword Search Section */}
         <section className="mb-8">
           <KeywordSearch />
         </section>
 
-        <section className="dashboard-summary">
-          <h1>Growth Intelligence Report</h1>
-          <p>Captured {new Date(data.summary.captured_at).toLocaleString()}</p>
-          <article className="summary-card">
-            <h2>Executive Summary</h2>
-            <p>{data.summary.executive_summary}</p>
-            <h3>Top Recommendations</h3>
-            <ul>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Growth Intelligence Report</h1>
+            <p className="text-muted-foreground mt-2">
+              Captured {new Date(data.summary.captured_at).toLocaleString()}
+            </p>
+          </div>
+        </div>
+
+        {/* Executive Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Executive Summary</CardTitle>
+            <CardDescription>AI-powered insights and analysis</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm leading-relaxed">{data.summary.executive_summary}</p>
+            
+            <div className="space-y-3 mt-6">
+              <h3 className="text-lg font-semibold">Top Recommendations</h3>
               {data.summary.recommendations.map((rec) => (
-                <li key={rec.title}>
-                  <strong>{rec.title}</strong>
-                  <p>{rec.description}</p>
-                  <span>Confidence: {(rec.confidence * 100).toFixed(0)}%</span>
-                </li>
+                <Card key={rec.title} className="border-l-4 border-l-primary">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">{rec.title}</CardTitle>
+                      <Badge variant="outline">
+                        {(rec.confidence * 100).toFixed(0)}% confidence
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">{rec.description}</p>
+                  </CardContent>
+                </Card>
               ))}
-            </ul>
-          </article>
-        </section>
+            </div>
+          </CardContent>
+        </Card>
 
-        <section className="dashboard-grid">
-          <div className="panel" data-chart="line">
-            <h3>SERP Share of Voice</h3>
-            <Line data={buildSerpTimelineDataset(data.serpTimeline)} />
-          </div>
+        {/* Analytics Grid */}
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="keywords">Keywords</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="competitors">Competitors</TabsTrigger>
+          </TabsList>
 
-          <div className="panel" data-chart="scatter">
-            <h3>Keyword Opportunities</h3>
-            <Scatter data={buildKeywordScatterDataset(data.keywordOpportunities)} />
-          </div>
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    SERP Share of Voice
+                  </CardTitle>
+                  <CardDescription>Your visibility trend over time</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Line data={buildSerpTimelineDataset(data.serpTimeline)} />
+                </CardContent>
+              </Card>
 
-          <div className="panel" data-chart="radar">
-            <h3>Brand & Sentiment Pulse</h3>
-            <Radar data={buildSentimentRadarDataset(data.sentiment)} />
-          </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Brand & Sentiment Pulse
+                  </CardTitle>
+                  <CardDescription>Brand perception metrics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Radar data={buildSentimentRadarDataset(data.sentiment)} />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
-          <div className="panel" data-chart="bar">
-            <h3>Core Web Vitals</h3>
-            <Bar data={buildCoreWebVitalsDataset(data.coreWebVitals)} />
-          </div>
+          <TabsContent value="keywords" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Keyword Opportunities
+                </CardTitle>
+                <CardDescription>
+                  Visualizing keyword difficulty vs. search volume
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Scatter data={buildKeywordScatterDataset(data.keywordOpportunities)} />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-          <div className="panel" id="backlink-network-wrapper">
-            <h3>Backlink Network</h3>
-            <div id="backlink-network" className="network-canvas" />
-          </div>
+          <TabsContent value="performance" className="space-y-4">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Core Web Vitals</CardTitle>
+                  <CardDescription>Performance metrics across devices</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Bar data={buildCoreWebVitalsDataset(data.coreWebVitals)} />
+                </CardContent>
+              </Card>
 
-          <div className="panel">
-            <h3>Competitor Tech Stack</h3>
-            <table className="tech-stack-table">
-              <thead>
-                <tr>
-                  <th>Competitor</th>
-                  <th>Technologies</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.techStack.map((entry: TechStackEntry) => (
-                  <tr key={entry.competitor}>
-                    <td>{entry.competitor}</td>
-                    <td>{entry.categories.join(', ')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+              <Card id="backlink-network-wrapper">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    Backlink Network
+                  </CardTitle>
+                  <CardDescription>Visual representation of your backlink profile</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div id="backlink-network" className="network-canvas h-[400px]" />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="competitors" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Competitor Tech Stack</CardTitle>
+                <CardDescription>
+                  Technologies used by your competitors
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Competitor</TableHead>
+                        <TableHead>Technologies</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.techStack.map((entry: TechStackEntry) => (
+                        <TableRow key={entry.competitor}>
+                          <TableCell className="font-medium">{entry.competitor}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {entry.categories.map((cat) => (
+                                <Badge key={cat} variant="secondary">
+                                  {cat}
+                                </Badge>
+                              ))}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

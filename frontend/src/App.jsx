@@ -8,6 +8,7 @@ const LandingPage = lazy(() => import('./pages/LandingPage.tsx'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage.tsx'));
 const TrialSignupPage = lazy(() => import('./pages/TrialSignupPage.tsx'));
 const ReportPage = lazy(() => import('./pages/dashboard/Report.tsx'));
+const BacklinksDashboard = lazy(() => import('./pages/dashboard/BacklinksDashboard.tsx'));
 const PricingPage = lazy(() => import('./pages/PricingPage.tsx'));
 const AboutPage = lazy(() => import('./pages/AboutPage.tsx'));
 const FAQPage = lazy(() => import('./pages/FAQPage.tsx'));
@@ -22,6 +23,7 @@ function App() {
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/trial-signup" element={<TrialSignupPage />} />
           <Route path="/dashboard" element={<ReportPage />} />
+          <Route path="/dashboard/backlinks" element={<BacklinksDashboard />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/faq" element={<FAQPage />} />
