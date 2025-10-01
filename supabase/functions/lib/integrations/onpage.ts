@@ -14,26 +14,16 @@ function getCredentials() {
   return { login, password };
 }
 
+// On-page audit uses task_post which requires polling - commenting out for now
+// to avoid workflow delays. Can be re-enabled later if needed.
 export async function fetchOnPageAudit(context: WorkflowContext) {
-  const { login, password } = getCredentials();
-
-  const response = await fetchWithRetry(() =>
-    fetch(`${DATAFORSEO_BASE_URL}/v3/on_page/audit/task_post`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${btoa(`${login}:${password}`)}`
-      },
-      body: JSON.stringify([
-        {
-          target: context.websiteUrl,
-          max_pages: 200
-        }
-      ])
-    })
-  );
-
-  const data = await response.json();
-  return data?.tasks ?? [];
+  console.log('On-page audit disabled - uses task_post endpoint that requires polling');
+  return {
+    audit_type: 'onpage',
+    payload: {
+      status: 'disabled',
+      message: 'On-page audit temporarily disabled to avoid workflow delays'
+    }
+  };
 }
 

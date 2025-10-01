@@ -44,19 +44,25 @@ export async function fetchSerpResults(context: WorkflowContext): Promise<SerpRe
     target: context.websiteUrl
   };
 
-  const response = await fetchDataForSeo<any>('/v3/serp/google/organic/task_post', {
+  // Use live endpoint instead of task_post to avoid polling delays
+  const response = await fetchDataForSeo<any>('/v3/serp/google/organic/live/advanced', {
     ...payload,
-    search_engine: 'google'
+    search_engine: 'google',
+    depth: 100
   });
 
-  const results = response?.tasks?.[0]?.result ?? [];
-  return results.map((item: any) => ({
-    search_engine: 'google',
-    keyword: item.keyword,
-    position: item.rank_absolute,
-    url: item.url,
-    delta: item.rank_changes?.absolute
-  }));
+  const results = response?.tasks?.[0]?.result?.[0]?.items ?? [];
+  return results
+    .filter((item: any) => item.url && item.domain)
+    .slice(0, 20) // Limit results
+    .map((item: any) => ({
+      search_engine: 'google',
+      keyword: `${context.industry} ${context.websiteUrl}`,
+      position: item.rank_absolute || item.position,
+      url: item.url,
+      domain: item.domain,
+      delta: item.rank_changes?.absolute || 0
+    }));
 }
 
 export async function fetchKeywordMetrics(context: WorkflowContext): Promise<KeywordMetric[]> {

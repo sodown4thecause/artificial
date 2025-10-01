@@ -25,8 +25,9 @@ export async function fetchContentAnalysis(context: WorkflowContext, serpResults
     return [];
   }
 
+  // Use live endpoint instead of task_post to avoid polling delays
   const response = await fetchWithRetry(() =>
-    fetch(`${DATAFORSEO_BASE_URL}/v3/content_analysis/sentiment_analysis/task_post`, {
+    fetch(`${DATAFORSEO_BASE_URL}/v3/content_analysis/sentiment_analysis/live`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -40,7 +41,8 @@ export async function fetchContentAnalysis(context: WorkflowContext, serpResults
   const tasks = data?.tasks ?? [];
 
   return tasks.flatMap((task: any) => {
-    const results = task?.result ?? [];
+    // Handle both task_post (polling) and live endpoint responses
+    const results = task?.result ?? (task?.items ? [task] : []);
     return results.map((entry: any) => ({
       url: entry?.url,
       sentiment: entry?.sentiment ?? {},
