@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useAuth } from '@clerk/clerk-react';
+import { supabase } from '../supabaseClient';
 import type { DataForSEOKeywordResult, KeywordSearchState } from '../types/dataforseo';
 
 const KeywordSearch = () => {
@@ -36,19 +37,22 @@ const KeywordSearch = () => {
       }
       
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
+
       if (!supabaseUrl) {
         throw new Error('Supabase URL not configured');
       }
-      
+
+      // Get the current user session token instead of using anonymous key
+      const { data: session } = await supabase.auth.getSession();
+      const sessionToken = session?.access_token;
+
       // Using the Supabase Edge Function for DataForSEO API
       const apiUrl = `${supabaseUrl}/functions/v1/dataforseo-keywords`;
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Authorization': `Bearer ${sessionToken || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'x-clerk-token': token
         },
         body: JSON.stringify({

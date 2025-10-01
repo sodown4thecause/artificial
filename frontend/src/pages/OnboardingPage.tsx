@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import OnboardingForm from '../components/onboarding/OnboardingForm';
 import { useAuth, useUser } from '@clerk/clerk-react';
+import { supabase } from '../supabaseClient';
 import type { OnboardingFormValues, WorkflowStatus } from '../types/workflow';
 
 const initialStatus: WorkflowStatus = { state: 'idle' };
@@ -36,21 +37,22 @@ function OnboardingPage() {
           throw new Error('Unable to obtain session token. Please sign in again.');
         }
 
-        // Use Supabase anon key for Authorization to pass Supabase JWT validation
-        // Send Clerk token in custom header for actual authentication
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        // Get the current user session token instead of using anonymous key
+        const { data: session } = await supabase.auth.getSession();
+        const sessionToken = session?.access_token;
+
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        
+
         if (!supabaseUrl) {
           throw new Error('Supabase URL not configured');
         }
-        
+
         const apiUrl = `${supabaseUrl}/functions/v1/run-intelligence-workflow`;
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Authorization': `Bearer ${sessionToken || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
             'x-clerk-token': token
           },
           body: JSON.stringify({

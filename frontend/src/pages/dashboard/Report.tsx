@@ -40,6 +40,7 @@ import type {
   BillingStatus
 } from '../../types/workflow';
 import { useAuth } from '@clerk/clerk-react';
+import { supabase } from '../../supabaseClient';
 import KeywordSearch from '../../components/KeywordSearch';
 import './dashboard.css';
 
@@ -85,8 +86,12 @@ function useFetchReport(getToken: () => Promise<string | null>) {
           throw new Error('Supabase URL not configured');
         }
         
+        // Get the current user session token instead of using anonymous key
+        const { data: session } = await supabase.auth.getSession();
+        const sessionToken = session?.access_token;
+
         const headers: Record<string, string> = {
-          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Authorization': `Bearer ${sessionToken || supabaseAnonKey}`,
           'x-clerk-token': clerkToken
         };
 
