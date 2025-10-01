@@ -13,13 +13,22 @@ export async function verifyClerkToken(request: Request): Promise<{ user: ClerkU
   // Try to get token from custom header first (bypasses Supabase JWT validation)
   let token = request.headers.get('x-clerk-token');
   
+  console.log('Clerk token from x-clerk-token header:', token ? 'Present' : 'Missing');
+  
   if (!token) {
     // Fallback to Authorization header
     const authHeader = request.headers.get('Authorization');
+    console.log('Authorization header:', authHeader ? 'Present' : 'Missing');
     if (!authHeader) {
-      return { error: 'Unauthorized', status: 401 };
+      console.error('No token found in headers');
+      return { error: 'Unauthorized - No token provided', status: 401 };
     }
     token = authHeader.replace('Bearer ', '');
+  }
+  
+  if (!token || token.trim() === '') {
+    console.error('Token is empty after extraction');
+    return { error: 'Unauthorized - Empty token', status: 401 };
   }
   
   // For Clerk tokens, we need to verify with Clerk's API
@@ -33,8 +42,9 @@ export async function verifyClerkToken(request: Request): Promise<{ user: ClerkU
     // Clerk tokens are standard JWTs with format: header.payload.signature
     const parts = token.split('.');
     if (parts.length !== 3) {
-      console.error('Invalid token format - not 3 parts');
-      return { error: 'Invalid token format', status: 401 };
+      console.error('Invalid token format - not 3 parts. Got', parts.length, 'parts');
+      console.error('Token preview:', token.substring(0, 50));
+      return { error: 'Invalid JWT format - expected 3 parts, got ' + parts.length, status: 401 };
     }
     
     let payload;
@@ -53,15 +63,18 @@ export async function verifyClerkToken(request: Request): Promise<{ user: ClerkU
       payload = JSON.parse(jsonString);
     } catch (e) {
       console.error('Failed to decode token payload:', e);
-      return { error: 'Invalid token encoding', status: 401 };
+      console.error('Token parts[1] preview:', parts[1]?.substring(0, 50));
+      return { error: 'Invalid JWT encoding - ' + e.message, status: 401 };
     }
     
     const userId = payload.sub;
     console.log('Decoded Clerk token for user:', userId);
+    console.log('Token payload keys:', Object.keys(payload));
     
     if (!userId) {
       console.error('No user ID in token payload');
-      return { error: 'Invalid token payload', status: 401 };
+      console.error('Payload:', JSON.stringify(payload));
+      return { error: 'Invalid JWT - missing user ID (sub claim)', status: 401 };
     }
     
     // Get user details from Clerk
