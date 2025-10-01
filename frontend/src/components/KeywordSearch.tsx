@@ -3,9 +3,11 @@ import { Search, TrendingUp, DollarSign, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { useAuth } from '@clerk/clerk-react';
 import type { DataForSEOKeywordResult, KeywordSearchState } from '../types/dataforseo';
 
 const KeywordSearch = () => {
+  const { getToken } = useAuth();
   const [searchState, setSearchState] = useState<KeywordSearchState>({
     query: '',
     results: [],
@@ -28,17 +30,32 @@ const KeywordSearch = () => {
     }));
 
     try {
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Not authenticated. Please sign in.');
+      }
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl) {
+        throw new Error('Supabase URL not configured');
+      }
+      
       // Using the Supabase Edge Function for DataForSEO API
-      const response = await fetch('/functions/v1/dataforseo-keywords', {
+      const apiUrl = `${supabaseUrl}/functions/v1/dataforseo-keywords`;
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'x-clerk-token': token
         },
         body: JSON.stringify({
           keywords: [searchQuery],
           location_code: 2840, // United States
           language_code: 'en',
-          limit: 10,
+          limit: 50,
         }),
       });
 

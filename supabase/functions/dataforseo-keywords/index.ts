@@ -1,14 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { getClerkUser } from '../lib/integrations/clerk-auth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-clerk-token',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 }
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
+  }
+  
+  // Verify Clerk authentication
+  const clerkResult = await getClerkUser(req);
+  if (clerkResult.error) {
+    return new Response(JSON.stringify({
+      error: 'AUTHENTICATION_FAILED',
+      message: 'Please sign in to use keyword search'
+    }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   try {
@@ -24,12 +38,11 @@ serve(async (req) => {
       )
     }
 
-    // Get DataForSEO API credentials from environment variables
-    const dataforseoUsername = Deno.env.get('DATAFORSEO_USERNAME')
-    const dataforseoPassword = Deno.env.get('DATAFORSEO_PASSWORD')
+    // Get DataForSEO API key from environment variables
+    const dataforseoApiKey = Deno.env.get('DATAFORSEO_API_KEY')
 
-    if (!dataforseoUsername || !dataforseoPassword) {
-      console.error('DataForSEO credentials not configured')
+    if (!dataforseoApiKey) {
+      console.error('DataForSEO API key not configured')
       return new Response(
         JSON.stringify({ error: 'DataForSEO API not configured' }),
         {
@@ -39,26 +52,22 @@ serve(async (req) => {
       )
     }
 
-    // Prepare the request data for DataForSEO
-    const requestData = {
-      data: keywords.map(keyword => ({
-        keyword,
-        location_code,
-        language_code,
-        limit
-      }))
-    }
+    // Use AI-optimized keyword_suggestions endpoint for cleaner response
+    console.log('Making DataForSEO AI-optimized keyword suggestions request for:', keywords[0])
 
-    console.log('Making DataForSEO API request:', requestData)
-
-    // Make the request to DataForSEO API
-    const response = await fetch('https://api.dataforseo.com/v3/keywords_data/google_ads/search_volume/live', {
+    // Make the request to DataForSEO API with .ai suffix for optimized response
+    const response = await fetch('https://api.dataforseo.com/v3/dataforseo_labs/google/keyword_suggestions/live.ai', {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${btoa(`${dataforseoUsername}:${dataforseoPassword}`)}`,
+        'Authorization': `Basic ${dataforseoApiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify([requestData])
+      body: JSON.stringify([{
+        keyword: keywords[0], // Primary keyword
+        location_name: 'United States',
+        language_name: 'English',
+        limit: limit || 50
+      }])
     })
 
     if (!response.ok) {

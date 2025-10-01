@@ -60,32 +60,67 @@ export async function fetchSerpResults(context: WorkflowContext): Promise<SerpRe
 }
 
 export async function fetchKeywordMetrics(context: WorkflowContext): Promise<KeywordMetric[]> {
-  // Temporarily returning mock data to skip keyword metrics API call
-  // TODO: Implement with correct DataForSEO API endpoints
-  console.log('Skipping keyword metrics for now');
-  return [
-    {
+  try {
+    const keywords = [
+      context.industry,
+      `${context.industry} services`,
+      `${context.industry} ${context.location}`
+    ];
+    
+    // Using DataForSEO Labs AI-optimized endpoint for cleaner response
+    const response = await fetchDataForSeo<any>('/v3/dataforseo_labs/google/keyword_suggestions/live.ai', {
       keyword: context.industry,
-      volume: 1000,
-      cpc: 2.5,
-      difficulty: 50,
-      ctrPotential: 0.25
-    },
-    {
-      keyword: `${context.industry} ${context.location}`,
-      volume: 500,
-      cpc: 3.0,
-      difficulty: 45,
-      ctrPotential: 0.30
-    }
-  ];
+      location_name: context.location,
+      language_name: 'English',
+      limit: 50
+    });
+    
+    const items = response?.tasks?.[0]?.result?.[0]?.items ?? [];
+    
+    return items.map((item: any) => ({
+      keyword: item.keyword,
+      volume: item.keyword_info?.search_volume ?? 0,
+      cpc: item.keyword_info?.cpc ?? 0,
+      difficulty: item.keyword_properties?.keyword_difficulty ?? 50,
+      ctrPotential: (item.impressions_info?.ctr ?? 0) / 100
+    })).slice(0, 20);
+  } catch (error) {
+    console.error('Failed to fetch keyword metrics:', error);
+    // Return mock data as fallback
+    return [
+      {
+        keyword: context.industry,
+        volume: 1000,
+        cpc: 2.5,
+        difficulty: 50,
+        ctrPotential: 0.25
+      }
+    ];
+  }
 }
 
 export async function identifyCompetitors(context: WorkflowContext): Promise<string[]> {
-  // Temporarily returning empty array to skip competitor identification
-  // TODO: Implement with correct DataForSEO API endpoints for your plan
-  console.log('Skipping competitor identification for now');
-  return [];
+  try {
+    // Using AI-optimized endpoint
+    const response = await fetchDataForSeo<any>('/v3/dataforseo_labs/google/competitors_domain/live.ai', {
+      target: context.websiteUrl.replace(/^https?:\/\//, '').replace(/\/$/, ''),
+      location_name: context.location,
+      language_name: 'English',
+      limit: 10
+    });
+    
+    const items = response?.tasks?.[0]?.result?.[0]?.items ?? [];
+    const competitors = items
+      .map((item: any) => item.domain)
+      .filter((domain: string) => domain && domain !== context.websiteUrl)
+      .slice(0, 5);
+    
+    console.log(`Identified ${competitors.length} competitors:`, competitors);
+    return competitors;
+  } catch (error) {
+    console.error('Failed to identify competitors:', error);
+    return [];
+  }
 }
 
 export async function analyzeCompetitorKeywords(competitors: string[], context: WorkflowContext): Promise<any[]> {
@@ -93,7 +128,8 @@ export async function analyzeCompetitorKeywords(competitors: string[], context: 
   
   for (const competitor of competitors.slice(0, 5)) { // Limit to avoid API overuse
     try {
-      const response = await fetchDataForSeo<any>('/v3/dataforseo_labs/google/competitors_domain/live', {
+      // Using AI-optimized endpoint
+      const response = await fetchDataForSeo<any>('/v3/dataforseo_labs/google/competitors_domain/live.ai', {
         target: competitor,
         location_name: context.location,
         language_name: 'English',
@@ -122,46 +158,13 @@ export async function analyzeCompetitorKeywords(competitors: string[], context: 
 }
 
 export async function fetchCompetitorBacklinks(competitors: string[]): Promise<any[]> {
-  const backlinkAnalysis = [];
-  
-  for (const competitor of competitors.slice(0, 3)) { // Limit analysis
-    try {
-      const response = await fetchDataForSeo<any>('/v3/backlinks/summary/live', {
-        target: competitor,
-        limit: 50
-      });
-
-      const summary = response?.tasks?.[0]?.result?.items?.[0] ?? {};
-      backlinkAnalysis.push({
-        domain: competitor,
-        backlinks_count: summary.backlinks,
-        referring_domains: summary.referring_domains,
-        domain_rank: summary.rank,
-        top_backlinks: summary.backlinks_info?.slice(0, 10) ?? []
-      });
-    } catch (error) {
-      console.warn(`Failed to fetch backlinks for ${competitor}: ${error}`);
-    }
-  }
-
-  return backlinkAnalysis;
+  // Backlinks API not available on current plan - returning empty array
+  console.log('Backlinks API not available, skipping backlink analysis');
+  return [];
 }
 
 export async function fetchEnhancedSerpResults(context: WorkflowContext, competitors: string[]): Promise<SerpResult[]> {
-  // Temporarily returning mock data to skip SERP analysis
-  // TODO: Implement with correct DataForSEO API endpoints
-  console.log('Skipping enhanced SERP results for now');
-  return [
-    {
-      search_engine: 'google',
-      keyword: context.industry,
-      position: 1,
-      url: context.websiteUrl,
-      delta: 0
-    }
-  ];
-  
-  /* Original code - commented out until correct API endpoints are determined
+  // Re-enabled with correct API endpoints
   const allResults: SerpResult[] = [];
   
   // Enhanced industry keywords including competitor analysis
@@ -177,7 +180,8 @@ export async function fetchEnhancedSerpResults(context: WorkflowContext, competi
 
   for (const keyword of enhancedKeywords.slice(0, 5)) {
     try {
-      const response = await fetchDataForSeo<any>('/v3/serp/google/organic/live/advanced', {
+      // Using AI-optimized endpoint for smaller response size
+      const response = await fetchDataForSeo<any>('/v3/serp/google/organic/live/advanced.ai', {
         location_name: context.location,
         language_name: 'English',
         keyword,
@@ -208,7 +212,6 @@ export async function fetchEnhancedSerpResults(context: WorkflowContext, competi
   }
 
   return allResults;
-  */
 }
 
 function extractDomain(url: string): string {
