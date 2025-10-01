@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who Am I? - Clerk User ID Checker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .result {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .result.error {
+            background: #fee;
+            border-left-color: #dc3545;
+        }
+        .result.success {
+            background: #efe;
+            border-left-color: #28a745;
+        }
+        .result.warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        .user-id {
+            font-family: 'Courier New', monospace;
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 18px;
+            word-break: break-all;
+            border: 2px solid #667eea;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .status-badge.limited {
+            background: #dc3545;
+            color: white;
+        }
+        .status-badge.ok {
+            background: #28a745;
+            color: white;
+        }
+        .status-badge.new {
+            background: #007bff;
+            color: white;
+        }
+        .instructions {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+        .instructions code {
+            background: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+        }
+        .instructions ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        .instructions li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .copy-btn {
+            background: #28a745;
+            padding: 8px 20px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .copy-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Who Am I?</h1>
+        <p class="subtitle">Identify your Clerk user ID and check your account status</p>
+
+        <div id="result"></div>
+
+        <div class="instructions">
+            <h3>📋 Instructions:</h3>
+            <ol>
+                <li>Make sure you're signed in to your app (check for <code>__session</code> cookie)</li>
+                <li>Click "Check My User ID" below</li>
+                <li>Copy the user ID and use it in the SQL diagnostic scripts</li>
+            </ol>
+        </div>
+
+        <button onclick="checkUser()">🔎 Check My User ID</button>
+    </div>
+
+    <script>
+        // Known users from database
+        const knownUsers = {
+            'user_33MUiyUPoo7oi7O4aoR0WOWs103': {
+                status: 'RATE LIMITED',
+                reports: 10,
+                limit: 10,
+                badge: 'limited'
+            },
+            'user_33OYNx0A1WU3wRrxNmxpTvA8Bec': {
+                status: 'HAS CAPACITY',
+                reports: 1,
+                limit: 10,
+                badge: 'ok'
+            }
+        };
+
+        function checkUser() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // Get session token from cookie
+                const cookies = document.cookie.split(';').map(c => c.trim());
+                const sessionCookie = cookies.find(c => c.startsWith('__session='));
+                
+                if (!sessionCookie) {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Not Signed In</h3>
+                            <p>No Clerk session found. Please sign in to your app first.</p>
+                            <p style="margin-top: 10px; font-size: 14px;">
+                                <strong>Steps:</strong><br>
+                                1. Go to your app (<a href="https://artificialintelligentsia.co/" target="_blank">https://artificialintelligentsia.co/</a>)<br>
+                                2. Sign in with Clerk<br>
+                                3. Come back to this page and try again
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Extract token
+                const token = sessionCookie.split('=')[1];
+                
+                // Decode JWT (extract payload)
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const userId = payload.sub;
+                const email = payload.email || 'Not in token';
+
+                // Check if user is known
+                const userData = knownUsers[userId];
+                
+                let statusHtml = '';
+                if (userData) {
+                    statusHtml = `
+                        <span class="status-badge ${userData.badge}">${userData.status}</span>
+                        <p style="margin-top: 10px;">
+                            <strong>Reports Generated Today:</strong> ${userData.reports}/${userData.limit}
+                        </p>
+                    `;
+                    
+                    if (userData.badge === 'limited') {
+                        statusHtml += `
+                            <div style="background: #fff; padding: 15px; border-radius: 8px; margin-top: 15px; border: 2px solid #dc3545;">
+                                <strong style="color: #dc3545;">⚠️ Rate Limit Reached</strong>
+                                <p style="margin-top: 10px; font-size: 14px;">
+                                    You've used all 10 reports for today. Options:<br>
+                                    1. Wait until tomorrow (resets at midnight UTC)<br>
+                                    2. Reset for testing: Run this SQL in Supabase:
+                                </p>
+                                <code style="display: block; margin-top: 10px; padding: 10px; background: #f8f9fa;">
+                                    DELETE FROM daily_report_limits<br>
+                                    WHERE user_id = '${userId}'<br>
+                                    AND report_date = CURRENT_DATE;
+                                </code>
+                            </div>
+                        `;
+                    } else {
+                        statusHtml += `
+                            <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                                <strong style="color: #155724;">✅ You Can Generate More Reports</strong>
+                                <p style="margin-top: 10px; font-size: 14px;">
+                                    You have ${userData.limit - userData.reports} reports remaining today.
+                                </p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    statusHtml = `
+                        <span class="status-badge new">NEW USER</span>
+                        <p style="margin-top: 10px;">
+                            You haven't completed onboarding yet or are using a different account.
+                        </p>
+                        <div style="background: #cce5ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                            <strong>Next Steps:</strong><br>
+                            1. Navigate to <code>/onboarding</code> in your app<br>
+                            2. Complete the onboarding form<br>
+                            3. Your report will be generated automatically
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="result success">
+                        <h3>✅ User Identified</h3>
+                        <p><strong>Email:</strong> ${email}</p>
+                        ${statusHtml}
+                        <div style="margin-top: 20px;">
+                            <strong>Your Clerk User ID:</strong>
+                            <div class="user-id" id="userId">${userId}</div>
+                            <button class="copy-btn" onclick="copyUserId()">📋 Copy User ID</button>
+                        </div>
+                        <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px;">
+                            <strong>🔍 Next Step:</strong> Use this User ID in the SQL scripts:<br>
+                            <code>check-my-user-data.sql</code> - Replace <code>&lt;YOUR_USER_ID&gt;</code> with the ID above
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Error</h3>
+                        <p>Could not decode session token. Error: ${error.message}</p>
+                        <p style="margin-top: 10px;">Make sure you're signed in and have a valid session.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function copyUserId() {
+            const userIdElement = document.getElementById('userId');
+            const userId = userIdElement.textContent;
+            
+            navigator.clipboard.writeText(userId).then(() => {
+                alert('✅ User ID copied to clipboard!');
+            }).catch(err => {
+                alert('❌ Failed to copy. Please select and copy manually.');
+            });
+        }
+
+        // Auto-check on page load if session exists
+        window.addEventListener('load', () => {
+            if (document.cookie.includes('__session=')) {
+                checkUser();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -85,3 +85,6 @@ jspm_packages/
 test-results-*.json
 monitor-report-*.json
 monitor-report-*.html
+
+.github/instructions/kluster-code-verify.instructions.md
+.kluster

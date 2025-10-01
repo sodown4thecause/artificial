@@ -3,15 +3,25 @@ import { fetchWithRetry } from '../utils.ts';
 
 const DATAFORSEO_BASE_URL = 'https://api.dataforseo.com';
 
-function getCredentials() {
-  const login = Deno.env.get('DATAFORSEO_LOGIN');
-  const password = Deno.env.get('DATAFORSEO_PASSWORD');
-
-  if (!login || !password) {
-    throw new Error('DataForSEO credentials are missing');
+function getCredentials(): string {
+  // Try DATAFORSEO_BASE64 first (preferred)
+  let base64Auth = Deno.env.get('DATAFORSEO_BASE64');
+  
+  // Fallback to manual encoding if LOGIN and PASSWORD are provided
+  if (!base64Auth) {
+    const login = Deno.env.get('DATAFORSEO_LOGIN');
+    const password = Deno.env.get('DATAFORSEO_PASSWORD');
+    
+    if (login && password) {
+      base64Auth = btoa(`${login}:${password}`);
+    }
   }
 
-  return { login, password };
+  if (!base64Auth) {
+    throw new Error('DataForSEO credentials are missing. Set DATAFORSEO_BASE64 or DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD');
+  }
+
+  return base64Auth;
 }
 
 export async function fetchDomainAnalytics(context: WorkflowContext, serpResults: SerpResult[]) {
@@ -24,16 +34,16 @@ export async function fetchDomainAnalytics(context: WorkflowContext, serpResults
     )
   );
 
-  const { login, password } = getCredentials();
+  const base64Auth = getCredentials();
 
   const responses = await Promise.allSettled(
     competitors.map((domain) =>
       fetchWithRetry(() =>
-        fetch(`${DATAFORSEO_BASE_URL}/v3/dataforseo_labs/domain_metrics/domain_overview/live`, {
+        fetch(`${DATAFORSEO_BASE_URL}/v3/dataforseo_labs/google/domain_rank_overview/live`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Basic ${btoa(`${login}:${password}`)}`
+            Authorization: `Basic ${base64Auth}`
           },
           body: JSON.stringify([
             {

@@ -4,10 +4,21 @@ import { fetchWithRetry } from '../utils.ts';
 const DATAFORSEO_BASE_URL = 'https://api.dataforseo.com';
 
 function getCredentials() {
-  const apiKey = Deno.env.get('DATAFORSEO_API_KEY');
+  // Try DATAFORSEO_BASE64 first (preferred)
+  let apiKey = Deno.env.get('DATAFORSEO_BASE64');
+  
+  // Fallback to manual encoding if LOGIN and PASSWORD are provided
+  if (!apiKey) {
+    const login = Deno.env.get('DATAFORSEO_LOGIN');
+    const password = Deno.env.get('DATAFORSEO_PASSWORD');
+    
+    if (login && password) {
+      apiKey = btoa(`${login}:${password}`);
+    }
+  }
 
   if (!apiKey) {
-    throw new Error('DataForSEO API key is missing');
+    throw new Error('DataForSEO credentials are missing. Set DATAFORSEO_BASE64 or DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD');
   }
 
   return apiKey;

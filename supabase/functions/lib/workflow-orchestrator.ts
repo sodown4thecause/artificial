@@ -12,7 +12,7 @@ import {
   analyzeCompetitorKeywords,
   fetchCompetitorBacklinks,
   buildCompetitorInsights
-} from './integrations/dataforseo.ts';
+} from './integrations/dataforseo-mcp.ts';
 import { fetchDomainAnalytics } from './integrations/domain-analytics.ts';
 import { fetchFirecrawlInsights } from './integrations/firecrawl.ts';
 import { fetchOnPageAudit } from './integrations/onpage.ts';
