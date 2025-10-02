@@ -21,6 +21,31 @@ import type { WorkflowContext, SerpResult, KeywordMetric } from '../types.ts';
 import { fetchWithRetry } from '../utils.ts';
 
 /**
+ * Map location names to DataForSEO location codes
+ * Full list: https://docs.dataforseo.com/v3/appendix/locations/
+ */
+function getLocationCode(location: string): number {
+  const locationMap: Record<string, number> = {
+    // Australia
+    'Brisbane, Australia': 2036,
+    'Sydney, Australia': 2036,
+    'Melbourne, Australia': 2036,
+    'Australia': 2036,
+    // USA
+    'United States': 2840,
+    'New York, USA': 1023191,
+    'Los Angeles, USA': 1023768,
+    'Chicago, USA': 1023854,
+    // UK
+    'United Kingdom': 2826,
+    'London, UK': 2826,
+    // Default fallback
+  };
+  
+  return locationMap[location] || 2840; // Default to United States
+}
+
+/**
  * Call DataForSEO API directly
  * @param endpoint - DataForSEO API endpoint (e.g., '/v3/serp/google/organic/live/advanced')
  * @param payload - API request payload (array for DataForSEO)
@@ -111,7 +136,7 @@ export async function identifyCompetitors(context: WorkflowContext): Promise<str
       '/v3/dataforseo_labs/google/competitors_domain/live',
       [{
         target: domain,
-        location_code: 2036, // Brisbane, Australia
+        location_code: getLocationCode(context.location),
         language_code: 'en',
         limit: 10
       }]
@@ -142,7 +167,7 @@ export async function fetchKeywordMetrics(context: WorkflowContext): Promise<Key
       '/v3/dataforseo_labs/google/keyword_suggestions/live',
       [{
         keyword: context.industry,
-        location_code: 2036, // Brisbane, Australia
+        location_code: getLocationCode(context.location),
         language_code: 'en',
         limit: 50,
         include_seed_keyword: true
@@ -179,13 +204,16 @@ export async function fetchKeywordMetrics(context: WorkflowContext): Promise<Key
 export async function fetchEnhancedSerpResults(context: WorkflowContext, competitors: string[]): Promise<SerpResult[]> {
   const allResults: SerpResult[] = [];
   
-  const keywords = [
-    context.industry,
-    `${context.industry} services`,
-    `${context.industry} ${context.location}`,
-    `best ${context.industry}`,
-    `top ${context.industry} companies`
-  ];
+  // Use user-provided keywords if available, otherwise generate defaults
+  const keywords = context.targetKeywords && context.targetKeywords.length > 0
+    ? context.targetKeywords
+    : [
+        context.industry,
+        `${context.industry} services`,
+        `${context.industry} ${context.location}`,
+        `best ${context.industry}`,
+        `top ${context.industry} companies`
+      ];
 
   for (const keyword of keywords.slice(0, 3)) { // Limit to 3 to avoid timeouts
     try {
@@ -195,7 +223,7 @@ export async function fetchEnhancedSerpResults(context: WorkflowContext, competi
         '/v3/serp/google/organic/live/advanced',
         [{
           keyword,
-          location_code: 2036, // Brisbane, Australia
+          location_code: getLocationCode(context.location),
           language_code: 'en',
           device: 'desktop',
           os: 'windows',
@@ -251,8 +279,8 @@ export async function analyzeCompetitorKeywords(competitors: string[], context: 
         '/v3/dataforseo_labs/google/ranked_keywords/live',
         [{
           target: competitor,
-          location_name: context.location,
-          language_name: 'English',
+          location_code: getLocationCode(context.location),
+          language_code: 'en',
           limit: 100,
           load_rank_absolute: true,
           filters: [["keyword_data.keyword_info.search_volume", ">", 0]]

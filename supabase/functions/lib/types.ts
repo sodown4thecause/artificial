@@ -28,6 +28,8 @@ export interface WorkflowContext {
   industry: string;
   location: string;
   fullName: string;
+  targetKeywords?: string[];
+  competitorDomains?: string[];
 }
 
 export interface ApiResponse<T = unknown> {
