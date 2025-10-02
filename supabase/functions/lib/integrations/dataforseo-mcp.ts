@@ -111,8 +111,8 @@ export async function identifyCompetitors(context: WorkflowContext): Promise<str
       '/v3/dataforseo_labs/google/competitors_domain/live',
       [{
         target: domain,
-        location_name: context.location,
-        language_name: 'English',
+        location_code: 2036, // Brisbane, Australia
+        language_code: 'en',
         limit: 10
       }]
     );
@@ -137,12 +137,13 @@ export async function fetchKeywordMetrics(context: WorkflowContext): Promise<Key
   try {
     console.log('📊 Fetching keyword metrics via proxy server...');
     
+    // DataForSEO keyword_suggestions requires location_code, not location_name
     const result = await callDataForSEO(
       '/v3/dataforseo_labs/google/keyword_suggestions/live',
       [{
         keyword: context.industry,
-        location_name: context.location,
-        language_name: 'English',
+        location_code: 2036, // Brisbane, Australia
+        language_code: 'en',
         limit: 50,
         include_seed_keyword: true
       }]
@@ -194,8 +195,8 @@ export async function fetchEnhancedSerpResults(context: WorkflowContext, competi
         '/v3/serp/google/organic/live/advanced',
         [{
           keyword,
-          location_name: context.location,
-          language_name: 'English',
+          location_code: 2036, // Brisbane, Australia
+          language_code: 'en',
           device: 'desktop',
           os: 'windows',
           depth: 50
