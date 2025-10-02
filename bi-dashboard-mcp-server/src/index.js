@@ -1,105 +1,82 @@
-/**
- * DataForSEO MCP Server - Cloudflare Worker
- * 
- * Edge-distributed access to DataForSEO APIs with MCP protocol support
- */
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-/**
- * Simple DataForSEO MCP Worker - Clean Implementation
- */
-
-export default {
+// src/index.js
+var index_default = {
   async fetch(request, env, ctx) {
-    
     const url = new URL(request.url);
-    
-    // Health check endpoint
-    if (url.pathname === '/health') {
+    if (url.pathname === "/health") {
       return new Response(JSON.stringify({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        edge_location: request.cf?.colo || 'unknown',
-        endpoints: ['/mcp', '/health', '/'],
-        modules_enabled: env.ENABLED_MODULES?.split(',') || []
+        status: "healthy",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        edge_location: request.cf?.colo || "unknown",
+        endpoints: ["/mcp", "/health", "/"],
+        modules_enabled: env.ENABLED_MODULES?.split(",") || []
       }), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" }
       });
     }
-    
-    // API documentation
-    if (url.pathname === '/') {
+    if (url.pathname === "/") {
       return new Response(getDocumentationHTML(), {
-        headers: { 'Content-Type': 'text/html' }
+        headers: { "Content-Type": "text/html" }
       });
     }
-    
-    // MCP endpoint - DataForSEO API proxy
-    if (url.pathname === '/mcp') {
+    if (url.pathname === "/mcp") {
       return await handleMCPRequest(request, env);
     }
-    
-    return new Response('Not Found', { status: 404 });
+    return new Response("Not Found", { status: 404 });
   }
 };
-
 async function handleMCPRequest(request, env) {
-  if (request.method === 'OPTIONS') {
+  if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
       }
     });
   }
-
   try {
     const body = await request.json();
-    
-    // Simple DataForSEO API proxy
     if (body.endpoint && body.payload) {
       const credentials = btoa(`${env.DATAFORSEO_USERNAME}:${env.DATAFORSEO_PASSWORD}`);
-      
       const response = await fetch(`https://api.dataforseo.com${body.endpoint}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${credentials}`
+          "Content-Type": "application/json",
+          "Authorization": `Basic ${credentials}`
         },
         body: JSON.stringify([body.payload])
       });
-
       const data = await response.json();
-      
       return new Response(JSON.stringify({
         success: response.ok,
-        data: data,
-        edge_location: request.cf?.colo || 'unknown'
+        data,
+        edge_location: request.cf?.colo || "unknown"
       }), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" }
       });
     }
-    
     return new Response(JSON.stringify({
-      error: 'Invalid request format',
-      expected: { endpoint: '/v3/...', payload: {} }
+      error: "Invalid request format",
+      expected: { endpoint: "/v3/...", payload: {} }
     }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" }
     });
-
   } catch (error) {
     return new Response(JSON.stringify({
-      error: 'Request failed',
+      error: "Request failed",
       message: error.message
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" }
     });
   }
 }
-
+__name(handleMCPRequest, "handleMCPRequest");
 function getDocumentationHTML() {
   return `
 <!DOCTYPE html>
@@ -116,12 +93,12 @@ function getDocumentationHTML() {
 </head>
 <body>
     <div class="header">
-        <h1>🔍 DataForSEO MCP Server</h1>
+        <h1>\u{1F50D} DataForSEO MCP Server</h1>
         <p>Edge-distributed access to DataForSEO's comprehensive SEO intelligence APIs</p>
         <p><strong>Edge Location:</strong> Global Cloudflare Network</p>
     </div>
     
-    <h2>📡 Available Endpoints</h2>
+    <h2>\u{1F4E1} Available Endpoints</h2>
     
     <div class="endpoint">
         <span class="method">POST</span> <code>/mcp</code>
@@ -133,7 +110,7 @@ function getDocumentationHTML() {
         <p>Health check with edge location info</p>
     </div>
     
-    <h2>🔧 Enabled Modules</h2>
+    <h2>\u{1F527} Enabled Modules</h2>
     <ul>
         <li><strong>SERP API:</strong> Real-time search rankings</li>
         <li><strong>Keywords API:</strong> Search volume and competition data</li>
@@ -145,10 +122,15 @@ function getDocumentationHTML() {
         <li><strong>Labs API:</strong> Proprietary SEO databases</li>
     </ul>
     
-    <h2>🎯 Integration</h2>
+    <h2>\u{1F3AF} Integration</h2>
     <p>This MCP server provides edge-distributed access to DataForSEO APIs for your BI Dashboard intelligence workflow.</p>
     
-    <p><em>Powered by Cloudflare Workers • Global Edge Network</em></p>
+    <p><em>Powered by Cloudflare Workers \u2022 Global Edge Network</em></p>
 </body>
 </html>`;
 }
+__name(getDocumentationHTML, "getDocumentationHTML");
+export {
+  index_default as default
+};
+//# sourceMappingURL=index.js.map
