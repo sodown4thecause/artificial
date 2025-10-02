@@ -20,60 +20,72 @@
 import type { WorkflowContext, SerpResult, KeywordMetric } from '../types.ts';
 import { fetchWithRetry } from '../utils.ts';
 
-const PROXY_SERVER_URL = 'https://bi-dashboard-mcp-server.liam-wilson1990.workers.dev';
-
 /**
- * Call DataForSEO API via Cloudflare Worker proxy
+ * Call DataForSEO API directly
  * @param endpoint - DataForSEO API endpoint (e.g., '/v3/serp/google/organic/live/advanced')
  * @param payload - API request payload (array for DataForSEO)
  */
 async function callDataForSEO(endpoint: string, payload: any[]): Promise<any> {
-  console.log(`📡 Calling DataForSEO via Cloudflare Worker: ${endpoint}`);
+  console.log(`📡 Calling DataForSEO API directly: ${endpoint}`);
   console.log(`📦 Payload items: ${payload.length}`);
 
-  // Cloudflare Worker expects: { endpoint: "/v3/...", payload: [...] }
-  const request = {
-    endpoint,
-    payload
-  };
+  const username = Deno.env.get('DATAFORSEO_USERNAME');
+  const password = Deno.env.get('DATAFORSEO_PASSWORD');
+
+  // Debug: Log credential status (NOT values)
+  console.log(`🔐 Credentials check:`);
+  console.log(`   - Username present: ${!!username} (length: ${username?.length || 0})`);
+  console.log(`   - Password present: ${!!password} (length: ${password?.length || 0})`);
+  console.log(`   - Username starts with: ${username?.substring(0, 3)}...`);
+
+  if (!username || !password) {
+    console.error('❌ DataForSEO credentials missing');
+    console.error('   Available env vars:', Object.keys(Deno.env.toObject()).filter(k => k.includes('DATA')));
+    return { items: [] };
+  }
+
+  // Create Basic Auth header
+  const auth = btoa(`${username}:${password}`);
 
   const response = await fetchWithRetry(() =>
-    fetch(`${PROXY_SERVER_URL}/mcp`, {
+    fetch(`https://api.dataforseo.com${endpoint}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${auth}`
       },
-      body: JSON.stringify(request),
-      signal: AbortSignal.timeout(90000) // 90 second timeout for API calls
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(90000)
     })
   );
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`❌ Cloudflare Worker returned error: ${response.status}`, errorText);
-    throw new Error(`DataForSEO ${endpoint} failed: ${response.status} - ${errorText}`);
+    console.error(`❌ DataForSEO API error: ${response.status}`);
+    console.error(`   Response body:`, errorText);
+    console.error(`   Auth header sent: Basic ${auth.substring(0, 20)}...`);
+    
+    // Try to parse error response
+    try {
+      const errorJson = JSON.parse(errorText);
+      console.error(`   Parsed error:`, errorJson);
+    } catch (e) {
+      // Not JSON, already logged as text
+    }
+    
+    return { items: [] };
   }
 
   const data = await response.json();
   
-  // Debug: Log response structure
-  console.log(`🔍 Response keys: ${Object.keys(data).join(', ')}`);
-  console.log(`🔍 Full response:`, JSON.stringify(data).substring(0, 500));
-  
-  // Check for Cloudflare Worker errors
-  if (data.error) {
-    console.error(`❌ Cloudflare Worker error:`, data.error);
-    throw new Error(`Worker error: ${data.error}`);
-  }
-
   // DataForSEO API responses are wrapped in tasks array
   if (data.tasks && data.tasks.length > 0) {
     const task = data.tasks[0];
     
     // Check task status
     if (task.status_code !== 20000) {
-      console.error(`❌ DataForSEO task failed:`, task);
-      throw new Error(`DataForSEO task failed [${task.status_code}]: ${task.status_message}`);
+      console.error(`❌ DataForSEO task failed [${task.status_code}]: ${task.status_message}`);
+      return { items: [] };
     }
     
     // Extract result - it's usually in result[0] for live endpoints
@@ -82,10 +94,8 @@ async function callDataForSEO(endpoint: string, payload: any[]): Promise<any> {
     return result;
   }
   
-  // If no tasks array, return data as-is (might be error or unexpected format)
-  console.warn(`⚠️ Response received with no tasks array - might indicate API issue`);
-  console.warn(`Response structure:`, data);
-  return data;
+  console.warn(`⚠️ No tasks array in DataForSEO response`);
+  return { items: [] };
 }
 
 /**
