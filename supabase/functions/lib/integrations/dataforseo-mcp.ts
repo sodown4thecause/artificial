@@ -56,6 +56,10 @@ async function callDataForSEO(endpoint: string, payload: any[]): Promise<any> {
 
   const data = await response.json();
   
+  // Debug: Log response structure
+  console.log(`🔍 Response keys: ${Object.keys(data).join(', ')}`);
+  console.log(`🔍 Full response:`, JSON.stringify(data).substring(0, 500));
+  
   // Check for Cloudflare Worker errors
   if (data.error) {
     console.error(`❌ Cloudflare Worker error:`, data.error);
@@ -78,8 +82,9 @@ async function callDataForSEO(endpoint: string, payload: any[]): Promise<any> {
     return result;
   }
   
-  // If no tasks array, return data as-is
-  console.log(`✅ Response received (no tasks array)`);
+  // If no tasks array, return data as-is (might be error or unexpected format)
+  console.warn(`⚠️ Response received with no tasks array - might indicate API issue`);
+  console.warn(`Response structure:`, data);
   return data;
 }
 

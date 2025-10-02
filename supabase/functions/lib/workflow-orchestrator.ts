@@ -17,7 +17,6 @@ import { fetchDomainAnalytics } from './integrations/domain-analytics.ts';
 import { fetchFirecrawlInsights } from './integrations/firecrawl.ts';
 import { fetchOnPageAudit } from './integrations/onpage.ts';
 import { fetchPageSpeedMetrics, buildCoreWebVitals } from './integrations/pagespeed.ts';
-import { fetchCustomSearchNews } from './integrations/search.ts';
 import { enrichContacts } from './integrations/voilanorbert.ts';
 import { generateInsights } from './integrations/llm.ts';
 import type {
@@ -182,7 +181,7 @@ async function runWorkflow(supabase: SupabaseClient, context: WorkflowContext) {
       }))
     );
 
-    const newsroomResults = await fetchCustomSearchNews(context);
+    const newsroomResults: any[] = [];
     const enrichedContacts = await enrichContacts(context, newsroomResults);
 
     const serpTimeline = buildSerpShareTimeline(serpResults);

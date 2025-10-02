@@ -1,3 +1,4 @@
+import Anthropic from 'npm:@anthropic-ai/sdk@0.32.1';
 import type {
   KeywordMetric,
   SerpResult,
@@ -146,6 +147,10 @@ async function callPrimaryModel(payload: IntelligenceReportPayload, perplexityIn
     throw new Error('Anthropic API key missing');
   }
 
+  const anthropic = new Anthropic({
+    apiKey: apiKey,
+  });
+
   // Create a structured analysis prompt with better data handling
   const analysisPrompt = `Analyze this marketing intelligence data and provide actionable business insights:
 
@@ -214,59 +219,56 @@ Based on this comprehensive analysis, provide strategic insights in JSON format 
 
 Prioritize recommendations that can drive measurable business results within 90 days.`;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: Deno.env.get('WORKFLOW_REPORT_LLM_MODEL') ?? 'claude-3-haiku-20240307',
+  try {
+    const message = await anthropic.messages.create({
+      model: Deno.env.get('WORKFLOW_REPORT_LLM_MODEL') ?? 'claude-sonnet-4-20250514',
       max_tokens: 2000,
-      system: 'You are a senior marketing intelligence analyst. Analyze the provided data and respond with well-structured JSON containing executive_summary (string) and recommendations (array of objects with title, description, and confidence fields). Ensure your response is valid JSON.',
+      system: 'You are a senior marketing intelligence analyst. Analyze the provided data and respond with well-structured JSON containing executive_summary (string) and recommendations (array of objects with title, description, and confidence fields). CRITICAL: Return ONLY raw JSON without any markdown formatting, code blocks, or backticks. Do not wrap your response in ```json``` tags.',
       messages: [
         {
           role: 'user',
           content: analysisPrompt
         }
       ]
-    })
-  });
+    });
 
-  if (!response.ok) {
-    throw new Error(`Anthropic request failed ${response.status}`);
-  }
+    const contentBlock = message.content.find((block) => block.type === 'text');
+    let content = contentBlock && 'text' in contentBlock ? contentBlock.text : '';
 
-  const data = await response.json();
-  const contentBlock = Array.isArray(data?.content)
-    ? data.content.find((block: any) => block.type === 'text')
-    : null;
-  const content = contentBlock?.text ?? '';
-
-  let parsed: { executive_summary: string; recommendations: Array<{ title: string; description: string; confidence: number }> };
-  try {
-    parsed = JSON.parse(content);
-  } catch (_error) {
-    parsed = {
-      executive_summary: content,
-      recommendations: []
-    };
-  }
-
-  const reportPayload: IntelligenceReportPayload = {
-    ...payload,
-    summary: {
-      ...payload.summary,
-      executive_summary: parsed.executive_summary,
-      recommendations: parsed.recommendations ?? []
+    // Strip markdown code blocks if present (Claude sometimes wraps JSON in ```json...```)
+    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      content = jsonMatch[1].trim();
+      console.log('✂️ Stripped markdown code blocks from Claude response');
     }
-  };
 
-  return {
-    summary: parsed.executive_summary,
-    reportPayload
-  };
+    let parsed: { executive_summary: string; recommendations: Array<{ title: string; description: string; confidence: number }> };
+    try {
+      parsed = JSON.parse(content);
+    } catch (_error) {
+      parsed = {
+        executive_summary: content,
+        recommendations: []
+      };
+    }
+
+    const reportPayload: IntelligenceReportPayload = {
+      ...payload,
+      summary: {
+        ...payload.summary,
+        executive_summary: parsed.executive_summary,
+        recommendations: parsed.recommendations ?? []
+      }
+    };
+
+    return {
+      summary: parsed.executive_summary,
+      reportPayload
+    };
+  } catch (error) {
+    console.error('Anthropic API call failed:', error);
+    throw new Error(`Anthropic request failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 async function callPerplexityInsights(payload: IntelligenceReportPayload) {
@@ -283,7 +285,7 @@ async function callPerplexityInsights(payload: IntelligenceReportPayload) {
       Authorization: `Bearer ${perplexityKey}`
     },
     body: JSON.stringify({
-      model: 'sonar',
+      model: 'sonar-pro',
       messages: [
         {
           role: 'user',
@@ -299,7 +301,13 @@ async function callPerplexityInsights(payload: IntelligenceReportPayload) {
   }
 
   const data = await response.json();
-  const content = data?.choices?.[0]?.message?.content ?? '';
+  let content = data?.choices?.[0]?.message?.content ?? '';
+
+  // Strip markdown code blocks if present
+  const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (jsonMatch) {
+    content = jsonMatch[1].trim();
+  }
 
   try {
     JSON.parse(content);

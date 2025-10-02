@@ -7,7 +7,7 @@ export async function fetchCustomSearchNews(context: WorkflowContext) {
   const cseId = Deno.env.get('CUSTOM_SEARCH_CSE_ID');
 
   if (!apiKey || !cseId) {
-    console.warn('Custom search credentials missing.');
+    console.warn('⚠️ Custom search credentials missing - skipping news search');
     return [];
   }
 
