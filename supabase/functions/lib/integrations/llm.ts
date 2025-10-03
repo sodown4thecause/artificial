@@ -61,7 +61,15 @@ function buildCompetitiveIntelligenceSection(input: GenerateInsightsInput): stri
 }
 
 export async function generateInsights(input: GenerateInsightsInput) {
-  const structuredPayload = buildStructuredPayload(input);
+  let structuredPayload = buildStructuredPayload(input);
+  
+  // If sentiment data is empty, use Perplexity to generate brand sentiment
+  if (structuredPayload.sentiment.length === 0) {
+    console.log('⚠️ No sentiment data from DataForSEO. Generating with Perplexity AI...');
+    const perplexitySentiment = await generateBrandSentiment(input.context);
+    structuredPayload = { ...structuredPayload, sentiment: perplexitySentiment };
+  }
+  
   const perplexityInsights = await callPerplexityInsights(structuredPayload);
   const { reportPayload, summary } = await callPrimaryModel(structuredPayload, perplexityInsights, input);
 
@@ -108,14 +116,35 @@ function buildStructuredPayload(input: GenerateInsightsInput): IntelligenceRepor
       }))
     : [];
 
-  const techStack = Array.isArray(input.domainAnalytics)
-    ? input.domainAnalytics.map((item: any) => ({
-        competitor: item?.tasks?.[0]?.result?.[0]?.target || item?.domain || input.context.websiteUrl,
-        categories: Array.isArray(item?.tasks?.[0]?.result?.[0]?.technologies)
-          ? item.tasks[0].result[0].technologies.map((tech: any) => tech.name || tech).filter(Boolean)
-          : []
-      }))
-    : [];
+  // Build techStack using actual competitors
+  const techStack = (() => {
+    // If we have competitors, use them
+    if (input.competitors && input.competitors.length > 0) {
+      return input.competitors.slice(0, 5).map(competitor => ({
+        competitor,
+        categories: [] // Will be populated by tech detection if available
+      }));
+    }
+    
+    // Fallback to domain analytics if available
+    if (Array.isArray(input.domainAnalytics) && input.domainAnalytics.length > 0) {
+      return input.domainAnalytics.map((item: any) => {
+        const target = item?.tasks?.[0]?.result?.[0]?.target || item?.domain;
+        // Skip if it's the user's own domain
+        if (target && target !== input.context.websiteUrl) {
+          return {
+            competitor: target,
+            categories: Array.isArray(item?.tasks?.[0]?.result?.[0]?.technologies)
+              ? item.tasks[0].result[0].technologies.map((tech: any) => tech.name || tech).filter(Boolean)
+              : []
+          };
+        }
+        return null;
+      }).filter(Boolean);
+    }
+    
+    return [];
+  })();
 
   const serpTimeline = Array.isArray(input.serpTimeline)
     ? input.serpTimeline.map((point) => ({
@@ -268,6 +297,73 @@ Prioritize recommendations that can drive measurable business results within 90 
   } catch (error) {
     console.error('Anthropic API call failed:', error);
     throw new Error(`Anthropic request failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+async function generateBrandSentiment(context: WorkflowContext) {
+  const perplexityKey = Deno.env.get('PERPLEXITY_API_KEY');
+  if (!perplexityKey) {
+    console.warn('Perplexity API key missing. Cannot generate brand sentiment.');
+    return [];
+  }
+
+  try {
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${perplexityKey}`
+      },
+      body: JSON.stringify({
+        model: 'sonar-pro',
+        messages: [
+          {
+            role: 'user',
+            content: `Analyze brand sentiment and perception for ${context.websiteUrl} in the ${context.industry} industry. Research online reviews, social media mentions, news coverage, and customer feedback. Provide sentiment scores (0-100, where 100 is most positive) for these key categories:
+1. Overall Brand Reputation
+2. Product/Service Quality
+3. Customer Service
+4. Innovation & Technology
+5. Value for Money
+6. Trust & Reliability
+
+Respond with ONLY a JSON array of objects with "label" and "score" properties. Example:
+[{"label":"Brand Reputation","score":75},{"label":"Product Quality","score":82},...]
+
+Be realistic based on actual online sentiment. If limited data is found, estimate based on industry standards.`
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Perplexity sentiment generation failed:', response.status, errorText);
+      return [];
+    }
+
+    const data = await response.json();
+    let content = data?.choices?.[0]?.message?.content ?? '';
+
+    // Strip markdown code blocks if present
+    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      content = jsonMatch[1].trim();
+    }
+
+    const sentimentData = JSON.parse(content);
+    if (Array.isArray(sentimentData)) {
+      console.log(`✅ Generated ${sentimentData.length} sentiment metrics via Perplexity`);
+      return sentimentData.map((item: any) => ({
+        label: item.label || 'Unknown',
+        score: Math.max(0, Math.min(100, Number(item.score) || 50))
+      }));
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Error generating brand sentiment:', error);
+    return [];
   }
 }
 

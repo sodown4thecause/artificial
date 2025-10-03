@@ -166,11 +166,93 @@ async function callDataForSEO(endpoint: string, payload: any[]): Promise<any> {
 /**
  * Identify competitors using DataForSEO Domain Analytics API
  */
+/**
+ * Ask Perplexity to suggest competitors based on industry and website
+ */
+async function suggestCompetitorsViaPerplexity(context: WorkflowContext): Promise<string[]> {
+  try {
+    console.log('🤖 Using Perplexity AI to suggest competitors...');
+    
+    const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
+    if (!perplexityApiKey) {
+      console.warn('⚠️ Perplexity API key not configured');
+      return [];
+    }
+    
+    const cleanWebsite = context.websiteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const prompt = `List the top 5 competitor websites for ${cleanWebsite} in the ${context.industry} industry located in ${context.location}. Provide ONLY the domain names (e.g., example.com), one per line, without any explanations, URLs, or additional text. Do not include ${cleanWebsite} itself.`;
+    
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${perplexityApiKey}`
+      },
+      body: JSON.stringify({
+        model: 'sonar-pro',
+        messages: [{
+          role: 'user',
+          content: prompt
+        }],
+        temperature: 0.2,
+        max_tokens: 200,
+        return_citations: false,
+        return_images: false
+      }),
+      signal: AbortSignal.timeout(30000)
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Perplexity API error: ${response.status}`);
+      console.error(`   Error details:`, errorText);
+      return [];
+    }
+    
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || '';
+    
+    // Parse domain names from response
+    const competitors = content
+      .split('\n')
+      .map((line: string) => line.trim())
+      .filter((line: string) => line.length > 0 && !line.includes(' '))
+      .map((domain: string) => domain.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').toLowerCase())
+      .filter((domain: string) => {
+        // Filter out invalid domains and own domain
+        const ownDomain = context.websiteUrl.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].toLowerCase();
+        return domain.includes('.') && domain !== ownDomain && !domain.includes(ownDomain);
+      })
+      .slice(0, 5);
+    
+    console.log(`✅ Perplexity suggested ${competitors.length} competitors:`, competitors);
+    return competitors;
+  } catch (error) {
+    console.error('❌ Perplexity competitor suggestion failed:', error);
+    return [];
+  }
+}
+
 export async function identifyCompetitors(context: WorkflowContext): Promise<string[]> {
   try {
-    console.log('🔍 Identifying competitors via proxy server...');
+    console.log('🔍 Identifying competitors...');
     
-    const domain = context.websiteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0];
+    // First, try user-provided competitors
+    if (context.competitorDomains && context.competitorDomains.length > 0) {
+      console.log(`✅ Using ${context.competitorDomains.length} user-provided competitors`);
+      return context.competitorDomains.slice(0, 5);
+    }
+    
+    // Extract clean domain from URL
+    const domain = context.websiteUrl
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .replace(/\/$/, '')
+      .split('/')[0]
+      .toLowerCase();
+    
+    console.log(`   - Target domain: ${domain}`);
+    console.log('   - Attempting DataForSEO competitor discovery...');
     
     const result = await callDataForSEO(
       '/v3/dataforseo_labs/google/competitors_domain/live',
@@ -182,15 +264,85 @@ export async function identifyCompetitors(context: WorkflowContext): Promise<str
       }]
     );
     
+    // Debug: Log raw items returned
+    console.log(`   - Raw API items count: ${result?.items?.length || 0}`);
+    if (result?.items?.length > 0) {
+      console.log(`   - First 3 items:`, result.items.slice(0, 3).map((i: any) => i.domain));
+    }
+    
+    // Filter out own domain and normalize competitor domains
     const competitors = result?.items
-      ?.map((item: any) => item.domain)
-      ?.filter((d: string) => d && !d.includes(domain))
+      ?.map((item: any) => {
+        if (!item || !item.domain) return null;
+        // Normalize domain: remove www, convert to lowercase
+        return item.domain.replace(/^www\./, '').toLowerCase();
+      })
+      ?.filter((d: string | null) => {
+        if (!d) return false;
+        // Exact match comparison (not substring)
+        const isOwnDomain = d === domain || d === `www.${domain}`;
+        if (isOwnDomain) {
+          console.log(`   - Filtered out own domain: ${d}`);
+        }
+        return !isOwnDomain;
+      })
       ?.slice(0, 5) || [];
     
-    console.log(`✅ Found ${competitors.length} competitors:`, competitors);
-    return competitors;
+    if (competitors.length > 0) {
+      console.log(`✅ DataForSEO found ${competitors.length} competitors:`, competitors);
+      return competitors;
+    }
+    
+    // If DataForSEO didn't find competitors, try Perplexity
+    console.warn('⚠️ DataForSEO found no competitors, trying Perplexity AI...');
+    const aiSuggestedCompetitors = await suggestCompetitorsViaPerplexity(context);
+    
+    if (aiSuggestedCompetitors.length > 0) {
+      return aiSuggestedCompetitors;
+    }
+    
+    console.warn('⚠️ No competitors identified from any source');
+    return [];
   } catch (error) {
     console.error('❌ Failed to identify competitors:', error);
+    return [];
+  }
+}
+
+/**
+ * Discover keywords for a website using DataForSEO Labs API
+ * Uses the Keywords For Site endpoint when no target keywords are provided
+ */
+export async function discoverKeywordsForSite(context: WorkflowContext): Promise<string[]> {
+  try {
+    console.log('🔍 Discovering keywords for website...');
+    
+    const domain = context.websiteUrl
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .replace(/\/$/, '')
+      .split('/')[0];
+    
+    const result = await callDataForSEO(
+      '/v3/dataforseo_labs/google/keywords_for_site/live',
+      [{
+        target: domain,
+        location_code: getLocationCode(context.location),
+        language_code: 'en',
+        limit: 20
+        // Note: filters not supported by this endpoint
+      }]
+    );
+    
+    const keywords = result?.items
+      ?.map((item: any) => item.keyword)
+      ?.filter((k: string) => k && k.length > 2)
+      ?.slice(0, 10) || [];
+    
+    console.log(`✅ Discovered ${keywords.length} keywords:`, keywords.slice(0, 5));
+    return keywords;
+  } catch (error) {
+    console.error('❌ Failed to discover keywords:', error);
     return [];
   }
 }
@@ -202,11 +354,31 @@ export async function fetchKeywordMetrics(context: WorkflowContext): Promise<Key
   try {
     console.log('📊 Fetching keyword metrics via proxy server...');
     
+    // If no target keywords provided, discover them first
+    let keywordsToAnalyze: string[] = [];
+    
+    if (context.targetKeywords && context.targetKeywords.length > 0) {
+      keywordsToAnalyze = context.targetKeywords;
+      console.log(`   - Using ${keywordsToAnalyze.length} user-provided keywords`);
+    } else {
+      console.log('   - No keywords provided, discovering keywords for site...');
+      const discoveredKeywords = await discoverKeywordsForSite(context);
+      
+      if (discoveredKeywords.length > 0) {
+        keywordsToAnalyze = discoveredKeywords;
+        console.log(`   - Using ${keywordsToAnalyze.length} discovered keywords`);
+      } else {
+        // Fallback to industry-based keywords
+        keywordsToAnalyze = [context.industry];
+        console.log('   - Falling back to industry keyword');
+      }
+    }
+    
     // DataForSEO keyword_suggestions requires location_code, not location_name
     const result = await callDataForSEO(
       '/v3/dataforseo_labs/google/keyword_suggestions/live',
       [{
-        keyword: context.industry,
+        keyword: keywordsToAnalyze[0], // Use first keyword as seed
         location_code: getLocationCode(context.location),
         language_code: 'en',
         limit: 50,
@@ -244,16 +416,29 @@ export async function fetchKeywordMetrics(context: WorkflowContext): Promise<Key
 export async function fetchEnhancedSerpResults(context: WorkflowContext, competitors: string[]): Promise<SerpResult[]> {
   const allResults: SerpResult[] = [];
   
-  // Use user-provided keywords if available, otherwise generate defaults
-  const keywords = context.targetKeywords && context.targetKeywords.length > 0
-    ? context.targetKeywords
-    : [
+  // Use user-provided keywords if available, otherwise discover or generate defaults
+  let keywords: string[] = [];
+  
+  if (context.targetKeywords && context.targetKeywords.length > 0) {
+    keywords = context.targetKeywords;
+    console.log(`   - Using ${keywords.length} user-provided keywords for SERP`);
+  } else {
+    console.log('   - No keywords provided for SERP, attempting discovery...');
+    const discoveredKeywords = await discoverKeywordsForSite(context);
+    
+    if (discoveredKeywords.length > 0) {
+      keywords = discoveredKeywords.slice(0, 5); // Use top 5 discovered
+      console.log(`   - Using ${keywords.length} discovered keywords for SERP`);
+    } else {
+      // Final fallback to industry-based keywords
+      keywords = [
         context.industry,
         `${context.industry} services`,
-        `${context.industry} ${context.location}`,
-        `best ${context.industry}`,
-        `top ${context.industry} companies`
+        `${context.industry} ${context.location}`
       ];
+      console.log('   - Using industry-based fallback keywords for SERP');
+    }
+  }
 
   for (const keyword of keywords.slice(0, 3)) { // Limit to 3 to avoid timeouts
     try {

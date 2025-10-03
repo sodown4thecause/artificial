@@ -474,6 +474,16 @@ function ReportPage() {
                       />
                     </AreaChart>
                   </ResponsiveContainer>
+                  {serpData.length === 0 && (
+                    <p className="text-sm text-muted-foreground mt-4 text-center">
+                      No SERP timeline data available yet. Share of Voice tracks your website's visibility in search results over time. Generate more reports to see trends.
+                    </p>
+                  )}
+                  {serpData.length > 0 && (
+                    <p className="text-sm text-muted-foreground mt-4">
+                      Share of Voice represents the percentage of search visibility your website owns for tracked keywords. Higher percentages indicate stronger organic presence.
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -486,21 +496,38 @@ function ReportPage() {
                   <CardDescription>Brand perception metrics</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RadarChart data={sentimentData}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="subject" />
-                      <PolarRadiusAxis />
-                      <Radar 
-                        name="Sentiment" 
-                        dataKey="score" 
-                        stroke="#6ec6ff" 
-                        fill="#6ec6ff" 
-                        fillOpacity={0.3} 
-                      />
-                      <Tooltip />
-                    </RadarChart>
-                  </ResponsiveContainer>
+                  {sentimentData.length > 0 ? (
+                    <>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <RadarChart data={sentimentData}>
+                          <PolarGrid />
+                          <PolarAngleAxis dataKey="subject" />
+                          <PolarRadiusAxis />
+                          <Radar 
+                            name="Sentiment" 
+                            dataKey="score" 
+                            stroke="#6ec6ff" 
+                            fill="#6ec6ff" 
+                            fillOpacity={0.3} 
+                          />
+                          <Tooltip />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                      <p className="text-sm text-muted-foreground mt-4">
+                        Sentiment scores (0-100) indicate how positively your brand is perceived across different content categories. Higher scores suggest more positive brand perception.
+                      </p>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[300px] text-center p-6">
+                      <Activity className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Brand sentiment data is being collected. This feature analyzes online content mentioning your brand to gauge public perception.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Check back after your next report generation for sentiment insights.
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -514,36 +541,53 @@ function ReportPage() {
                   Keyword Opportunities
                 </CardTitle>
                 <CardDescription>
-                  Visualizing keyword difficulty vs. search volume (size = CTR potential)
+                  Analyze keyword metrics to identify high-potential opportunities
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <ScatterChart>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      type="number" 
-                      dataKey="difficulty" 
-                      name="Difficulty" 
-                      label={{ value: 'Difficulty', position: 'bottom' }}
-                    />
-                    <YAxis 
-                      type="number" 
-                      dataKey="volume" 
-                      name="Volume" 
-                      label={{ value: 'Search Volume', angle: -90, position: 'left' }}
-                    />
-                    <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter name="Keywords" data={keywordData} fill="#2361ff">
-                      {keywordData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill="#2361ff"
-                        />
-                      ))}
-                    </Scatter>
-                  </ScatterChart>
-                </ResponsiveContainer>
+                {keywordData.length > 0 ? (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Keyword</TableHead>
+                          <TableHead className="text-right">Search Volume</TableHead>
+                          <TableHead className="text-right">Difficulty</TableHead>
+                          <TableHead className="text-right">CTR Potential</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {keywordData
+                          .sort((a, b) => b.volume - a.volume)
+                          .map((kw, index) => (
+                            <TableRow key={`${kw.keyword}-${index}`}>
+                              <TableCell className="font-medium">{kw.keyword}</TableCell>
+                              <TableCell className="text-right">
+                                {kw.volume.toLocaleString()}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Badge 
+                                  variant={kw.difficulty < 30 ? 'success' : kw.difficulty < 60 ? 'default' : 'destructive'}
+                                >
+                                  {kw.difficulty}%
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {(kw.ctr * 100).toFixed(1)}%
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-[300px] text-center p-6">
+                    <Search className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                    <p className="text-sm text-muted-foreground">
+                      No keyword opportunities identified yet. Complete onboarding with target keywords to see opportunities.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

@@ -1,0 +1,316 @@
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artificial Intelligentsia - The Future of Business Intelligence</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Flowbite -->
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.0.0/dist/flowbite.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Merriweather:wght@400;700&family=Fira+Code&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <!-- Custom Theme -->
+    <link rel="stylesheet" href="theme_1.css">
+
+    <style>
+        /* Applying theme variables */
+        body {
+            background-color: var(--background) !important;
+            color: var(--foreground) !important;
+            font-family: var(--font-sans) !important;
+        }
+
+        /* Custom styles */
+        .text-primary {
+            color: var(--primary) !important;
+        }
+        .bg-primary {
+            background-color: var(--primary) !important;
+            color: var(--primary-foreground) !important;
+        }
+        .bg-primary:hover {
+            background-color: oklch(0.90 0.2 85) !important;
+        }
+        .border-primary {
+            border-color: var(--primary) !important;
+        }
+        .ring-primary {
+            --tw-ring-color: var(--primary) !important;
+        }
+        .btn {
+            transition: all 200ms ease-out;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .card-hover {
+            transition: all 300ms ease-out;
+        }
+        .card-hover:hover {
+            transform: translateY(-0.25rem);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Animation */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeInDown {
+            animation: fadeInDown 500ms ease-out forwards;
+        }
+        
+        /* Staggered animation for revealed elements */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 400ms ease-out, transform 400ms ease-out;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header id="header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <nav class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="text-2xl font-bold">
+                    <a href="#"><span class="text-primary">Artificial</span> Intelligentsia</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="hover:text-primary transition-colors">Features</a>
+                    <a href="#pricing" class="hover:text-primary transition-colors">Pricing</a>
+                    <a href="#" class="hover:text-primary transition-colors">Blog</a>
+                    <a href="#" class="hover:text-primary transition-colors">Contact Us</a>
+                </div>
+                <div>
+                    <a href="#" class="btn bg-primary text-primary-foreground font-semibold px-5 py-2 rounded-md">Request a Demo</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="h-screen flex items-center justify-center text-center pt-20">
+            <div class="container mx-auto px-6">
+                <h1 class="text-5xl md:text-7xl font-extrabold leading-tight animate-fadeInDown">
+                    The Future of Business <br> Intelligence is <span class="text-primary">Artificial</span>.
+                </h1>
+                <p class="mt-6 text-lg md:text-xl max-w-3xl mx-auto text-gray-400 animate-fadeInDown" style="animation-delay: 100ms;">
+                    Artificial Intelligentsia is a next-generation BI platform that helps you make smarter decisions, faster.
+                </p>
+                <div class="mt-10 flex justify-center gap-4 animate-fadeInDown" style="animation-delay: 200ms;">
+                    <a href="#" class="btn bg-primary text-primary-foreground font-semibold px-8 py-3 rounded-md text-lg">Get Started for Free</a>
+                    <a href="#" class="btn bg-secondary text-secondary-foreground font-semibold px-8 py-3 rounded-md text-lg">Watch a Demo</a>
+                </div>
+                <div class="mt-16 max-w-5xl mx-auto animate-fadeInDown" style="animation-delay: 300ms;">
+                    <div class="aspect-video bg-muted rounded-lg border border-border flex items-center justify-center">
+                        <p class="text-muted-foreground">Abstract data visualization placeholder</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trusted By Section -->
+        <section class="py-20">
+            <div class="container mx-auto px-6">
+                <h3 class="text-center text-muted-foreground font-semibold uppercase tracking-wider reveal">Trusted by the most innovative companies</h3>
+                <div class="mt-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center justify-items-center reveal">
+                    <img src="https://placehold.co/150x60/1a1a1a/444444?text=Logo1" alt="Client Logo 1" class="opacity-50 hover:opacity-100 transition-opacity">
+                    <img src="https://placehold.co/150x60/1a1a1a/444444?text=Logo2" alt="Client Logo 2" class="opacity-50 hover:opacity-100 transition-opacity">
+                    <img src="https://placehold.co/150x60/1a1a1a/444444?text=Logo3" alt="Client Logo 3" class="opacity-50 hover:opacity-100 transition-opacity">
+                    <img src="https://placehold.co/150x60/1a1a1a/444444?text=Logo4" alt="Client Logo 4" class="opacity-50 hover:opacity-100 transition-opacity">
+                    <img src="https://placehold.co/150x60/1a1a1a/444444?text=Logo5" alt="Client Logo 5" class="opacity-50 hover:opacity-100 transition-opacity">
+                    <img src="https://placehold.co/150x60/1a1a1a/444444?text=Logo6" alt="Client Logo 6" class="opacity-50 hover:opacity-100 transition-opacity">
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 bg-card">
+            <div class="container mx-auto px-6">
+                <div class="text-center">
+                    <h2 class="text-4xl font-bold reveal">Powerful Features</h2>
+                    <p class="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto reveal">Unlock insights you never thought possible with our suite of intelligent tools.</p>
+                </div>
+                <div class="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-background p-8 rounded-lg border border-border card-hover reveal">
+                        <div class="w-12 h-12 bg-primary/10 text-primary rounded-md flex items-center justify-center">
+                            <i data-lucide="brain-circuit"></i>
+                        </div>
+                        <h3 class="mt-6 text-2xl font-bold">AI-Powered Insights</h3>
+                        <p class="mt-2 text-muted-foreground">Go beyond dashboards. Our AI automatically uncovers hidden patterns and opportunities in your data.</p>
+                    </div>
+                    <div class="bg-background p-8 rounded-lg border border-border card-hover reveal" style="transition-delay: 100ms;">
+                        <div class="w-12 h-12 bg-primary/10 text-primary rounded-md flex items-center justify-center">
+                            <i data-lucide="layout-dashboard"></i>
+                        </div>
+                        <h3 class="mt-6 text-2xl font-bold">Real-time Dashboards</h3>
+                        <p class="mt-2 text-muted-foreground">Monitor your business with stunning, customizable dashboards that update in real-time.</p>
+                    </div>
+                    <div class="bg-background p-8 rounded-lg border border-border card-hover reveal" style="transition-delay: 200ms;">
+                        <div class="w-12 h-12 bg-primary/10 text-primary rounded-md flex items-center justify-center">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                        <h3 class="mt-6 text-2xl font-bold">Predictive Analytics</h3>
+                        <p class="mt-2 text-muted-foreground">Forecast future trends and outcomes with our easy-to-use predictive modeling tools.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonial Section -->
+        <section class="py-24">
+            <div class="container mx-auto px-6 text-center reveal">
+                <blockquote class="text-3xl font-serif italic max-w-4xl mx-auto">
+                    "This BI tool is a <span class="text-primary">game-changer</span>! We've uncovered millions in savings thanks to the insights from Artificial Intelligentsia."
+                </blockquote>
+                <cite class="mt-6 block font-bold text-xl not-italic">- Jane Doe, CEO at Acme Corp</cite>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="pricing" class="py-20 bg-card">
+            <div class="container mx-auto px-6">
+                <div class="text-center">
+                    <h2 class="text-4xl font-bold reveal">Pricing Plans</h2>
+                    <p class="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto reveal">Start small and scale as you grow. All plans include a 14-day free trial.</p>
+                </div>
+                <div class="mt-16 grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    <div class="bg-background p-8 rounded-lg border border-border card-hover reveal">
+                        <h3 class="text-2xl font-bold">Starter</h3>
+                        <p class="mt-4 text-4xl font-extrabold">$49<span class="text-lg font-medium text-muted-foreground">/mo</span></p>
+                        <ul class="mt-6 space-y-4 text-muted-foreground">
+                            <li class="flex items-center gap-3"><i data-lucide="check" class="text-primary"></i> 1 User</li>
+                            <li class="flex items-center gap-3"><i data-lucide="check" class="text-primary"></i> 1 Dashboard</li>
+                            <li class="flex items-center gap-3"><i data-lucide="check" class="text-primary"></i> Basic Insights</li>
+                        </ul>
+                        <a href="#" class="mt-8 block w-full text-center btn bg-secondary text-secondary-foreground font-semibold px-6 py-3 rounded-md">Choose Plan</a>
+                    </div>
+                    <div class="bg-background p-8 rounded-lg border-2 border-primary card-hover relative reveal" style="transition-delay: 100ms;">
+                        <div class="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
+                            <span class="bg-primary text-primary-foreground text-sm font-semibold px-4 py-1 rounded-full">Most Popular</span>
+                        </div>
+                        <h3 class="text-2xl font-bold">Professional</h3>
+                        <p class="mt-4 text-4xl font-extrabold">$99<span class="text-lg font-medium text-muted-foreground">/mo</span></p>
+                        <ul class="mt-6 space-y-4 text-muted-foreground">
+                            <li class="flex items-center gap-3"><i data-lucide="check" class="text-primary"></i> 10 Users</li>
+                            <li class="flex items-center gap-3"><i data-lucide="check" class="text-primary"></i> Unlimited Dashboards</li>
+                            <li class="flex items-center gap-3"><i data-lucide="check" class="text-primary"></i> AI-Powered Insights</li>
+                        </ul>
+                        <a href="#" class="mt-8 block w-full text-center btn bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-md">Choose Plan</a>
+                    </div>
+                    <div class="bg-background p-8 rounded-lg border border-border card-hover reveal" style="transition-delay: 200ms;">
+                        <h3 class="text-2xl font-bold">Enterprise</h3>
+                        <p class="mt-4 text-4xl font-extrabold">Contact Us</p>
+                        <ul class="mt-6 space-y-4 text-muted-foreground">
+                            <li class="flex items-center gap-3"><i data-lucide="check" class="text-primary"></i> Unlimited Users</li>
+                            <li class="flex items-center gap-3"><i data-lucide="check" class="text-primary"></i> Dedicated Support</li>
+                            <li class="flex items-center gap-3"><i data-lucide="check" class="text-primary"></i> On-premise option</li>
+                        </ul>
+                        <a href="#" class="mt-8 block w-full text-center btn bg-secondary text-secondary-foreground font-semibold px-6 py-3 rounded-md">Contact Sales</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-16 border-t border-border">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold"><span class="text-primary">Artificial</span> Intelligentsia</h3>
+                    <p class="mt-2 text-muted-foreground">The Future of Business Intelligence</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold">Company</h4>
+                    <ul class="mt-4 space-y-2 text-muted-foreground">
+                        <li><a href="#" class="hover:text-primary">About</a></li>
+                        <li><a href="#" class="hover:text-primary">Careers</a></li>
+                        <li><a href="#" class="hover:text-primary">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold">Product</h4>
+                    <ul class="mt-4 space-y-2 text-muted-foreground">
+                        <li><a href="#" class="hover:text-primary">Features</a></li>
+                        <li><a href="#" class="hover:text-primary">Pricing</a></li>
+                        <li><a href="#" class="hover:text-primary">Security</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold">Legal</h4>
+                    <ul class="mt-4 space-y-2 text-muted-foreground">
+                        <li><a href="#" class="hover:text-primary">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-primary">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-12 pt-8 border-t border-border flex justify-between items-center">
+                <p class="text-muted-foreground">&copy; 2024 Artificial Intelligentsia. All rights reserved.</p>
+                <div class="flex space-x-4 text-muted-foreground">
+                    <a href="#" class="hover:text-primary"><i data-lucide="twitter"></i></a>
+                    <a href="#" class="hover:text-primary"><i data-lucide="linkedin"></i></a>
+                    <a href="#" class="hover:text-primary"><i data-lucide="github"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Scroll reveal animation
+        const revealElements = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 100); // Stagger effect
+                }
+            });
+        }, { threshold: 0.1 });
+
+        revealElements.forEach(el => {
+            observer.observe(el);
+        });
+
+        // Header background on scroll
+        const header = document.getElementById('header');
+        window.onscroll = function() {
+            if (window.scrollY > 50) {
+                header.classList.add('bg-background/80', 'backdrop-blur-sm', 'shadow-md');
+            } else {
+                header.classList.remove('bg-background/80', 'backdrop-blur-sm', 'shadow-md');
+            }
+        };
+    </script>
+</body>
+</html>
