@@ -59,14 +59,23 @@ const KeywordSearch = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch keyword data');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || errorData.error || `Failed to fetch keyword data (${response.status})`;
+        console.error('❌ API Error:', errorData);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      console.log('📊 DataForSEO API response:', data);
+
+      // Parse DataForSEO response structure:
+      // data.tasks[0].result[0].items contains the keyword array
+      const results = data.tasks?.[0]?.result?.[0]?.items || [];
+      console.log('📈 Parsed results:', results.length, 'keywords');
 
       setSearchState(prev => ({
         ...prev,
-        results: data.tasks?.[0]?.result || [],
+        results: results,
         isLoading: false,
         hasSearched: true,
       }));

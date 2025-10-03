@@ -38,13 +38,21 @@ serve(async (req) => {
       )
     }
 
-    // Get DataForSEO API key from environment variables
-    const dataforseoApiKey = Deno.env.get('DATAFORSEO_API_KEY')
+    // Get DataForSEO credentials from environment variables
+    const username = Deno.env.get('DATAFORSEO_USERNAME')
+    const password = Deno.env.get('DATAFORSEO_PASSWORD')
 
-    if (!dataforseoApiKey) {
-      console.error('DataForSEO API key not configured')
+    console.log('🔐 Checking DataForSEO credentials...')
+    console.log('   - Username present:', !!username)
+    console.log('   - Password present:', !!password)
+
+    if (!username || !password) {
+      console.error('❌ DataForSEO credentials not configured')
       return new Response(
-        JSON.stringify({ error: 'DataForSEO API not configured' }),
+        JSON.stringify({ 
+          error: 'DataForSEO API not configured',
+          message: 'DATAFORSEO_USERNAME and DATAFORSEO_PASSWORD environment variables are required'
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -52,20 +60,23 @@ serve(async (req) => {
       )
     }
 
-    // Use AI-optimized keyword_suggestions endpoint for cleaner response
-    console.log('Making DataForSEO AI-optimized keyword suggestions request for:', keywords[0])
+    // Create Basic Auth header
+    const auth = btoa(`${username}:${password}`)
 
-    // Make the request to DataForSEO API with .ai suffix for optimized response
-    const response = await fetch('https://api.dataforseo.com/v3/dataforseo_labs/google/keyword_suggestions/live.ai', {
+    // Use standard keyword_suggestions endpoint (not .ai)
+    console.log('📡 Making DataForSEO keyword suggestions request for:', keywords[0])
+
+    // Make the request to DataForSEO API
+    const response = await fetch('https://api.dataforseo.com/v3/dataforseo_labs/google/keyword_suggestions/live', {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${dataforseoApiKey}`,
+        'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify([{
         keyword: keywords[0], // Primary keyword
-        location_name: 'United States',
-        language_name: 'English',
+        location_code: location_code,
+        language_code: language_code,
         limit: limit || 50
       }])
     })
@@ -87,7 +98,15 @@ serve(async (req) => {
     }
 
     const data = await response.json()
-    console.log('DataForSEO API response received')
+    console.log('✅ DataForSEO API response received')
+    console.log('   - Status code:', data.status_code)
+    console.log('   - Tasks:', data.tasks?.length || 0)
+    
+    // Log the response structure for debugging
+    if (data.tasks?.[0]) {
+      console.log('   - Task status:', data.tasks[0].status_code, data.tasks[0].status_message)
+      console.log('   - Result items:', data.tasks[0].result?.[0]?.items?.length || 0)
+    }
 
     return new Response(
       JSON.stringify(data),
