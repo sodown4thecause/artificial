@@ -25,24 +25,64 @@ import { fetchWithRetry } from '../utils.ts';
  * Full list: https://docs.dataforseo.com/v3/appendix/locations/
  */
 function getLocationCode(location: string): number {
+  // Normalize location string (trim, uppercase for comparison)
+  const normalizedLocation = location?.trim().toUpperCase() || '';
+  
   const locationMap: Record<string, number> = {
     // Australia
-    'Brisbane, Australia': 2036,
-    'Sydney, Australia': 2036,
-    'Melbourne, Australia': 2036,
-    'Australia': 2036,
-    // USA
-    'United States': 2840,
-    'New York, USA': 1023191,
-    'Los Angeles, USA': 1023768,
-    'Chicago, USA': 1023854,
+    'BRISBANE, AUSTRALIA': 2036,
+    'SYDNEY, AUSTRALIA': 2036,
+    'MELBOURNE, AUSTRALIA': 2036,
+    'AUSTRALIA': 2036,
+    
+    // USA - Common variations
+    'UNITED STATES': 2840,
+    'USA': 2840,
+    'US': 2840,
+    'UNITED STATES OF AMERICA': 2840,
+    'NEW YORK, USA': 1023191,
+    'NEW YORK': 1023191,
+    'LOS ANGELES, USA': 1023768,
+    'LOS ANGELES': 1023768,
+    'CHICAGO, USA': 1023854,
+    'CHICAGO': 1023854,
+    
     // UK
-    'United Kingdom': 2826,
-    'London, UK': 2826,
-    // Default fallback
+    'UNITED KINGDOM': 2826,
+    'UK': 2826,
+    'GREAT BRITAIN': 2826,
+    'LONDON, UK': 2826,
+    'LONDON': 2826,
+    
+    // Canada
+    'CANADA': 2124,
+    'TORONTO': 9012,
+    'VANCOUVER': 9007,
+    
+    // Europe
+    'GERMANY': 2276,
+    'FRANCE': 2250,
+    'SPAIN': 2724,
+    'ITALY': 2380,
+    'NETHERLANDS': 2528,
   };
   
-  return locationMap[location] || 2840; // Default to United States
+  // Try exact match first
+  if (locationMap[normalizedLocation]) {
+    console.log(`✅ Mapped location "${location}" to code: ${locationMap[normalizedLocation]}`);
+    return locationMap[normalizedLocation];
+  }
+  
+  // Try partial matches
+  for (const [key, code] of Object.entries(locationMap)) {
+    if (normalizedLocation.includes(key) || key.includes(normalizedLocation)) {
+      console.log(`✅ Partial match for location "${location}" to "${key}", code: ${code}`);
+      return code;
+    }
+  }
+  
+  console.warn(`⚠️ No mapping found for location "${location}", defaulting to United States (2840)`);
+  return 2840; // Default to United States
 }
 
 /**

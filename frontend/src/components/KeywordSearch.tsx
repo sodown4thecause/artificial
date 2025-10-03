@@ -3,12 +3,13 @@ import { Search, TrendingUp, DollarSign, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useSession } from '@clerk/clerk-react';
 import { supabase } from '../supabaseClient';
 import type { DataForSEOKeywordResult, KeywordSearchState } from '../types/dataforseo';
 
 const KeywordSearch = () => {
   const { getToken } = useAuth();
+  const { session } = useSession();
   const [searchState, setSearchState] = useState<KeywordSearchState>({
     query: '',
     results: [],
@@ -31,7 +32,12 @@ const KeywordSearch = () => {
     }));
 
     try {
-      const token = await getToken();
+      // Get the raw Clerk session token (JWT)
+      const token = await session?.getToken();
+      
+      console.log('🔑 Token retrieved:', token ? 'Yes' : 'No');
+      console.log('🔑 Token preview:', token?.substring(0, 50));
+      
       if (!token) {
         throw new Error('Not authenticated. Please sign in.');
       }

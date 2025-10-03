@@ -102,7 +102,9 @@ export async function triggerWorkflow(
     websiteUrl: payload.websiteUrl,
     industry: payload.industry,
     location: payload.location,
-    fullName: payload.fullName
+    fullName: payload.fullName,
+    targetKeywords: payload.targetKeywords,
+    competitorDomains: payload.competitorDomains
   };
 
   queueMicrotask(() => runWorkflow(supabase, context).catch((err) => {
